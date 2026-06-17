@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.database.session import init_db
+from app.api import employees_router, exception_handlers
 
 
 @asynccontextmanager
@@ -34,6 +35,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add exception handlers
+for exc_class, handler in exception_handlers.items():
+    app.add_exception_handler(exc_class, handler)
+
+# Include routers
+app.include_router(employees_router)
 
 
 @app.get("/")
