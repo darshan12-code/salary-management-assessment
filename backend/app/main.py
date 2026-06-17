@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.database.session import init_db
-from app.api import employees_router, exception_handlers
+from app.api import employees_router, analytics_router, exception_handlers
 
 
 @asynccontextmanager
@@ -42,6 +42,7 @@ for exc_class, handler in exception_handlers.items():
 
 # Include routers
 app.include_router(employees_router)
+app.include_router(analytics_router)
 
 
 @app.get("/")

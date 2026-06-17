@@ -1,6 +1,12 @@
 from app.schemas.employee import EmployeeCreate, EmployeeUpdate, EmployeeResponse
 from app.schemas.salary import SalaryUpdateRequest, SalaryHistoryResponse
 from app.schemas.common import PaginatedResponse
+from app.schemas.analytics import (
+    DepartmentAnalytics,
+    CountryAnalytics,
+    EmployeeSalaryInfo,
+    AnalyticsResponse
+)
 
 __all__ = [
     "EmployeeCreate",
@@ -9,4 +15,8 @@ __all__ = [
     "SalaryUpdateRequest",
     "SalaryHistoryResponse",
     "PaginatedResponse",
+    "DepartmentAnalytics",
+    "CountryAnalytics",
+    "EmployeeSalaryInfo",
+    "AnalyticsResponse",
 ]
