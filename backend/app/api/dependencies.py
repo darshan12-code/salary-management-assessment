@@ -24,3 +24,4 @@ def get_analytics_service(employee_service: EmployeeService = Depends(get_employ
     Uses EmployeeService's database session and repository.
     """
     return AnalyticsService(employee_service.db, employee_service.employee_repository)
+
