@@ -89,7 +89,7 @@ const EmployeeDetails = () => {
   }
 
   const handleEditEmployee = () => {
-    navigate(`/employees/${id}/edit`)
+    navigate(`/employees/${id}/edit`, { state: { from: 'details' } })
   }
 
   const handleUpdateSalary = () => {
@@ -138,7 +138,15 @@ const EmployeeDetails = () => {
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/employees')}
-          sx={{ mr: { sm: 2 }, alignSelf: { xs: 'flex-start', sm: 'center' } }}
+          sx={{ 
+            mr: { sm: 2 }, 
+            alignSelf: { xs: 'flex-start', sm: 'center' },
+            color: '#64748B',
+            '&:hover': {
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              color: '#2563EB',
+            },
+          }}
         >
           Back to Employees
         </Button>
@@ -157,22 +165,35 @@ const EmployeeDetails = () => {
         </Grid>
 
         <Grid item xs={12} lg={4}>
-          <Box sx={{ height: '100%' }}>
-            <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom>
+          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom fontWeight={600}>
               Quick Actions
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
               <Button
                 variant="outlined"
-                fullWidth={isMobile}
                 onClick={handleEditEmployee}
+                sx={{
+                  py: 1.5,
+                  fontWeight: 500,
+                  '&:hover': {
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                  },
+                }}
               >
                 Edit Employee
               </Button>
               <Button
                 variant="contained"
-                fullWidth={isMobile}
                 onClick={handleUpdateSalary}
+                sx={{
+                  py: 1.5,
+                  fontWeight: 500,
+                  backgroundColor: '#2563EB',
+                  '&:hover': {
+                    backgroundColor: '#1D4ED8',
+                  },
+                }}
               >
                 Update Salary
               </Button>
@@ -207,6 +228,7 @@ const EmployeeDetails = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleNotificationClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert
           onClose={handleNotificationClose}

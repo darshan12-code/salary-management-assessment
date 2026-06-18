@@ -18,7 +18,7 @@ const EmployeeProfileCard = ({ employee, onEdit }) => {
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <CardContent>
         <Box
           display="flex"
@@ -34,7 +34,11 @@ const EmployeeProfileCard = ({ employee, onEdit }) => {
             startIcon={<EditIcon />}
             size={isMobile ? 'small' : 'medium'}
             onClick={onEdit}
-            fullWidth={isMobile}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              },
+            }}
           >
             Edit
           </Button>
@@ -98,6 +102,14 @@ const EmployeeProfileCard = ({ employee, onEdit }) => {
               label={employee.is_active ? 'Active' : 'Inactive'}
               color={employee.is_active ? 'success' : 'default'}
               size={isMobile ? 'small' : 'medium'}
+              sx={{
+                fontWeight: 500,
+                backgroundColor: employee.is_active ? 'rgba(22, 163, 74, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+                color: employee.is_active ? '#16A34A' : '#64748B',
+                '&:hover': {
+                  backgroundColor: employee.is_active ? 'rgba(22, 163, 74, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+                },
+              }}
             />
           </Grid>
         </Grid>

@@ -31,9 +31,12 @@ const SalaryCard = ({ employee, onUpdateSalary }) => {
           transform: 'translateY(-4px)',
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
         },
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <CardContent>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -53,21 +56,22 @@ const SalaryCard = ({ employee, onUpdateSalary }) => {
         <Typography variant="body2" sx={{ opacity: 0.9, mb: 3, fontWeight: 500 }}>
           {employee.currency}
         </Typography>
-        <Button
-          variant="contained"
-          onClick={onUpdateSalary}
-          fullWidth={isMobile}
-          sx={{
-            bgcolor: 'white',
-            color: '#2563EB',
-            fontWeight: 600,
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.9)',
-            },
-          }}
-        >
-          Update Salary
-        </Button>
+        <Box sx={{ mt: 'auto' }}>
+          <Button
+            variant="contained"
+            onClick={onUpdateSalary}
+            sx={{
+              bgcolor: 'white',
+              color: '#2563EB',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+              },
+            }}
+          >
+            Update Salary
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   )
