@@ -42,7 +42,7 @@ const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error
       department: '',
       designation: '',
       country: '',
-      salary: '',
+      salary: 0,
       currency: '',
       joining_date: '',
       is_active: true,
@@ -248,6 +248,7 @@ const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error
               <Controller
                 name="salary"
                 control={control}
+                rules={{ valueAsNumber: true }}
                 render={({ field }) => (
                   <TextField
                     {...field}

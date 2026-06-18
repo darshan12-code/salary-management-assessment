@@ -11,7 +11,7 @@ export const employeeSchema = z.object({
   country: z.enum(['India', 'USA', 'UK', 'Germany', 'Canada', 'Australia'], {
     required_error: 'Country is required',
   }),
-  salary: z.number().min(0.01, 'Salary must be greater than 0'),
+  salary: z.coerce.number().min(0.01, 'Salary must be greater than 0'),
   currency: z.string().min(1, 'Currency is required'),
   joining_date: z.string().min(1, 'Joining date is required'),
   is_active: z.boolean().default(true),
@@ -28,3 +28,7 @@ export const COUNTRY_CURRENCY_MAP = {
 
 export const DEPARTMENTS = ['Engineering', 'HR', 'Finance', 'Sales', 'Marketing', 'Operations']
 export const COUNTRIES = ['India', 'USA', 'UK', 'Germany', 'Canada', 'Australia']
+
+export const salaryUpdateSchema = z.object({
+  salary: z.coerce.number().min(0.01, 'Salary must be greater than 0'),
+})

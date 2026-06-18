@@ -5,42 +5,47 @@ import {
   Box,
   Typography,
   Button,
-  Card,
-  CardContent,
   Grid,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
+  CircularProgress,
   Alert,
+  Snackbar,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
-import { ArrowBack as ArrowBackIcon, Edit as EditIcon } from '@mui/icons-material'
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
 import { employeeService } from '../services/employeeService'
 import Loading from '../components/Loading'
+import EmployeeProfileCard from '../components/EmployeeProfileCard'
+import SalaryCard from '../components/SalaryCard'
+import SalaryUpdateDialog from '../components/SalaryUpdateDialog'
+import SalaryHistoryTable from '../components/SalaryHistoryTable'
 
 const EmployeeDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [openSalaryDialog, setOpenSalaryDialog] = useState(false)
-  const [newSalary, setNewSalary] = useState('')
-  const [error, setError] = useState('')
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
-  const { data: employee, isLoading, error: fetchError } = useQuery({
+  const [openSalaryDialog, setOpenSalaryDialog] = useState(false)
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
+
+  const { data: employee, isLoading, error: fetchError, refetch: refetchEmployee } = useQuery({
     queryKey: ['employee', id],
     queryFn: () => employeeService.getEmployeeById(id),
   })
 
-  const { data: salaryHistory } = useQuery({
+  const {
+    data: salaryHistory,
+    isLoading: salaryHistoryLoading,
+    error: salaryHistoryError,
+    refetch: refetchSalaryHistory,
+  } = useQuery({
     queryKey: ['salaryHistory', id],
     queryFn: () => employeeService.getSalaryHistory(id),
     enabled: !!employee,
@@ -49,214 +54,168 @@ const EmployeeDetails = () => {
   const updateSalaryMutation = useMutation({
     mutationFn: (salary) => employeeService.updateSalary(id, salary),
     onSuccess: () => {
-      queryClient.invalidateQueries(['employee', id])
-      queryClient.invalidateQueries(['salaryHistory', id])
+      queryClient.invalidateQueries({ queryKey: ['employee', id] })
+      queryClient.invalidateQueries({ queryKey: ['salaryHistory', id] })
       setOpenSalaryDialog(false)
-      setNewSalary('')
-      setError('')
+      setNotification({
+        open: true,
+        message: 'Salary updated successfully!',
+        severity: 'success',
+      })
     },
     onError: (err) => {
-      setError(err.response?.data?.detail || 'Failed to update salary')
+      setNotification({
+        open: true,
+        message: err.response?.data?.detail || 'Failed to update salary',
+        severity: 'error',
+      })
     },
   })
 
-  const handleSalaryUpdate = () => {
-    const salary = parseFloat(newSalary)
-    if (isNaN(salary) || salary <= 0) {
-      setError('Please enter a valid salary greater than 0')
-      return
-    }
+  const handleSalaryUpdate = (salary) => {
     updateSalaryMutation.mutate(salary)
   }
 
-  if (isLoading) return <Loading />
+  const handleNotificationClose = () => {
+    setNotification({ ...notification, open: false })
+  }
+
+  const handleRetryEmployee = () => {
+    refetchEmployee()
+  }
+
+  const handleRetrySalaryHistory = () => {
+    refetchSalaryHistory()
+  }
+
+  const handleEditEmployee = () => {
+    navigate(`/employees/${id}/edit`)
+  }
+
+  const handleUpdateSalary = () => {
+    setOpenSalaryDialog(true)
+  }
+
+  if (isLoading) {
+    return <Loading />
+  }
+
   if (fetchError) {
     return (
-      <Box>
-        <Typography color="error">Error loading employee details</Typography>
+      <Box sx={{ p: 3 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/employees')}
+          sx={{ mb: 2 }}
+        >
+          Back to Employees
+        </Button>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={handleRetryEmployee}>
+              Retry
+            </Button>
+          }
+        >
+          Error loading employee details: {fetchError.message}
+        </Alert>
       </Box>
     )
   }
 
   return (
-    <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/employees')}
-        sx={{ mb: 2 }}
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          mb: { xs: 2, sm: 3 },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 2, sm: 0 },
+        }}
       >
-        Back to Employees
-      </Button>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/employees')}
+          sx={{ mr: { sm: 2 }, alignSelf: { xs: 'flex-start', sm: 'center' } }}
+        >
+          Back to Employees
+        </Button>
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
+          Employee Details
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-              >
-                <Typography variant="h5">Employee Details</Typography>
-                <Button
-                  variant="outlined"
-                  startIcon={<EditIcon />}
-                  size="small"
-                  onClick={() => navigate(`/employees/${id}/edit`)}
-                >
-                  Edit
-                </Button>
-              </Box>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Employee ID
-                  </Typography>
-                  <Typography variant="body1">{employee.employee_id}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Name
-                  </Typography>
-                  <Typography variant="body1">{employee.name}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Email
-                  </Typography>
-                  <Typography variant="body1">{employee.email}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Department
-                  </Typography>
-                  <Typography variant="body1">{employee.department}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Designation
-                  </Typography>
-                  <Typography variant="body1">{employee.designation}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Country
-                  </Typography>
-                  <Typography variant="body1">{employee.country}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Salary
-                  </Typography>
-                  <Typography variant="body1">
-                    ${parseFloat(employee.salary).toLocaleString()} {employee.currency}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Status
-                  </Typography>
-                  <Chip
-                    label={employee.is_active ? 'Active' : 'Inactive'}
-                    color={employee.is_active ? 'success' : 'default'}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    Joining Date
-                  </Typography>
-                  <Typography variant="body1">
-                    {new Date(employee.joining_date).toLocaleDateString()}
-                  </Typography>
-                </Grid>
-              </Grid>
-              <Box mt={2}>
-                <Button
-                  variant="contained"
-                  onClick={() => setOpenSalaryDialog(true)}
-                >
-                  Update Salary
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid item xs={12} md={6} lg={4}>
+          <EmployeeProfileCard employee={employee} onEdit={handleEditEmployee} />
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                Salary History
-              </Typography>
-              {salaryHistory && salaryHistory.length > 0 ? (
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Old Salary</TableCell>
-                        <TableCell>New Salary</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {salaryHistory.map((history) => (
-                        <TableRow key={history.id}>
-                          <TableCell>
-                            {new Date(history.changed_at).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            ${parseFloat(history.old_salary).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            ${parseFloat(history.new_salary).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No salary history available
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6} lg={4}>
+          <SalaryCard employee={employee} onUpdateSalary={handleUpdateSalary} />
+        </Grid>
+
+        <Grid item xs={12} lg={4}>
+          <Box sx={{ height: '100%' }}>
+            <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom>
+              Quick Actions
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Button
+                variant="outlined"
+                fullWidth={isMobile}
+                onClick={handleEditEmployee}
+              >
+                Edit Employee
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth={isMobile}
+                onClick={handleUpdateSalary}
+              >
+                Update Salary
+              </Button>
+            </Box>
+          </Box>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom sx={{ mt: 2 }}>
+            Salary History
+          </Typography>
+          <SalaryHistoryTable
+            salaryHistory={salaryHistory}
+            currency={employee.currency}
+            isLoading={salaryHistoryLoading}
+            error={salaryHistoryError}
+            onRetry={handleRetrySalaryHistory}
+          />
         </Grid>
       </Grid>
 
-      <Dialog open={openSalaryDialog} onClose={() => setOpenSalaryDialog(false)}>
-        <DialogTitle>Update Salary</DialogTitle>
-        <DialogContent>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <TextField
-            autoFocus
-            margin="dense"
-            label="New Salary"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={newSalary}
-            onChange={(e) => setNewSalary(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSalaryDialog(false)}>Cancel</Button>
-          <Button
-            onClick={handleSalaryUpdate}
-            variant="contained"
-            disabled={updateSalaryMutation.isPending}
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SalaryUpdateDialog
+        open={openSalaryDialog}
+        onClose={() => setOpenSalaryDialog(false)}
+        onSubmit={handleSalaryUpdate}
+        currentSalary={employee.salary}
+        currency={employee.currency}
+        isLoading={updateSalaryMutation.isPending}
+      />
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleNotificationClose}
+      >
+        <Alert
+          onClose={handleNotificationClose}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

@@ -75,17 +75,22 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
       flex: 1,
       minWidth: 80,
     },
-    {
+   {
       field: 'salary',
       headerName: 'Salary',
       width: 130,
       flex: 1,
       minWidth: 110,
-      valueFormatter: (params) => {
+      valueFormatter: (value, row) => {
+        const rowData = row || value?.api?.getRow(value?.id);
+        const rawValue = typeof value === 'object' ? value.value : value;
+        
+        const currencyCode = rowData?.currency || 'USD';
+
         return new Intl.NumberFormat('en-US', {
           style: 'currency',
-          currency: params.row?.currency || 'USD',
-        }).format(params.value)
+          currency: currencyCode,
+        }).format(rawValue);
       },
     },
     {
