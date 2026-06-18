@@ -9,14 +9,14 @@ import NotFound from './pages/NotFound'
 function App() {
   return (
     <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/employees/:id" element={<EmployeeDetails />} />
+      <Routes>
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="employees" element={<Employees />} />
+          <Route path="employees/:id" element={<EmployeeDetails />} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AppLayout>
+        </Route>
+      </Routes>
     </Router>
   )
 }

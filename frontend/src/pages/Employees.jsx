@@ -1,85 +1,99 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
   Typography,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Pagination,
-  Chip,
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import { employeeService } from '../services/employeeService'
-import Loading from '../components/Loading'
+import EmployeeFilters from '../components/EmployeeFilters'
+import EmployeeTable from '../components/EmployeeTable'
+import TableSkeleton from '../components/TableSkeleton'
+import ErrorState from '../components/ErrorState'
+import EmptyState from '../components/EmptyState'
 
 const Employees = () => {
   const navigate = useNavigate()
-  const [page, setPage] = useState(1)
-  const [pageSize] = useState(10)
-  const [search, setSearch] = useState('')
-  const [department, setDepartment] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  
+  // Initialize state from URL params
+  const [paginationModel, setPaginationModel] = useState(() => {
+    const pageParam = parseInt(searchParams.get('page') || '0')
+    const pageSizeParam = parseInt(searchParams.get('pageSize') || '10')
+    return {
+      page: pageParam,
+      pageSize: pageSizeParam,
+    }
+  })
+  
+  const [filters, setFilters] = useState(() => {
+    const searchParam = searchParams.get('search') || ''
+    const departmentParam = searchParams.get('department') || ''
+    const countryParam = searchParams.get('country') || ''
+    return {
+      search: searchParam,
+      department: departmentParam,
+      country: countryParam,
+    }
+  })
 
-  const { data: employeesData, isLoading, error } = useQuery({
-    queryKey: ['employees', page, pageSize, search, department],
+  // Update URL params when filters or pagination change (but not on initial mount)
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filters.search) params.set('search', filters.search)
+    if (filters.department) params.set('department', filters.department)
+    if (filters.country) params.set('country', filters.country)
+    params.set('page', paginationModel.page.toString())
+    params.set('pageSize', paginationModel.pageSize.toString())
+    setSearchParams(params)
+  }, [filters, paginationModel, setSearchParams])
+
+  const { data: employeesData, isLoading, error, refetch } = useQuery({
+    queryKey: ['employees', paginationModel.page + 1, paginationModel.pageSize, filters],
     queryFn: () =>
       employeeService.getEmployees({
-        page,
-        page_size: pageSize,
-        search: search || undefined,
-        department: department || undefined,
+        page: paginationModel.page + 1,
+        page_size: paginationModel.pageSize,
+        search: filters.search || undefined,
+        department: filters.department || undefined,
+        country: filters.country || undefined,
       }),
   })
 
-  const handlePageChange = (event, value) => {
-    setPage(value)
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters)
+    setPaginationModel({ ...paginationModel, page: 0 })
   }
 
-  const handleSearchChange = (event) => {
-    setSearch(event.target.value)
-    setPage(1)
+  const handlePaginationModelChange = (newPaginationModel) => {
+    setPaginationModel(newPaginationModel)
   }
 
-  const handleDepartmentChange = (event) => {
-    setDepartment(event.target.value)
-    setPage(1)
-  }
-
-  const handleRowClick = (id) => {
-    navigate(`/employees/${id}`)
-  }
-
-  if (isLoading) return <Loading />
+  if (isLoading) return <TableSkeleton rowCount={paginationModel.pageSize} columnCount={10} />
   if (error) {
     return (
-      <Box>
-        <Typography color="error">Error loading employees</Typography>
-      </Box>
+      <ErrorState
+        message="Failed to load employees. Please try again."
+        onRetry={() => refetch()}
+      />
     )
   }
 
   const employees = employeesData?.items || []
   const total = employeesData?.total || 0
-  const totalPages = employeesData?.total_pages || 1
 
   return (
-    <Box>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
         mb={3}
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        gap={{ xs: 2, sm: 0 }}
       >
         <Typography variant="h4" component="h1">
           Employees
@@ -88,93 +102,30 @@ const Employees = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => navigate('/employees/new')}
+          fullWidth={{ xs: true, sm: false }}
         >
           Add Employee
         </Button>
       </Box>
 
-      <Paper sx={{ mb: 3, p: 2 }}>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <TextField
-            label="Search"
-            value={search}
-            onChange={handleSearchChange}
-            size="small"
-            sx={{ minWidth: 200, flexGrow: 1 }}
-          />
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Department</InputLabel>
-            <Select
-              value={department}
-              onChange={handleDepartmentChange}
-              label="Department"
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="Engineering">Engineering</MenuItem>
-              <MenuItem value="HR">HR</MenuItem>
-              <MenuItem value="Finance">Finance</MenuItem>
-              <MenuItem value="Sales">Sales</MenuItem>
-              <MenuItem value="Marketing">Marketing</MenuItem>
-              <MenuItem value="Operations">Operations</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 3 }}>
+        <EmployeeFilters filters={filters} onFilterChange={handleFilterChange} />
       </Paper>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Employee ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>Designation</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>Salary</TableCell>
-              <TableCell>Status</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {employees.map((employee) => (
-              <TableRow
-                key={employee.id}
-                hover
-                onClick={() => handleRowClick(employee.id)}
-                sx={{ cursor: 'pointer' }}
-              >
-                <TableCell>{employee.id}</TableCell>
-                <TableCell>{employee.employee_id}</TableCell>
-                <TableCell>{employee.name}</TableCell>
-                <TableCell>{employee.email}</TableCell>
-                <TableCell>{employee.department}</TableCell>
-                <TableCell>{employee.designation}</TableCell>
-                <TableCell>{employee.country}</TableCell>
-                <TableCell>
-                  ${parseFloat(employee.salary).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={employee.is_active ? 'Active' : 'Inactive'}
-                    color={employee.is_active ? 'success' : 'default'}
-                    size="small"
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Box display="flex" justifyContent="center" mt={3}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={handlePageChange}
-          color="primary"
+      {employees.length === 0 ? (
+        <EmptyState
+          message="No employees found matching your criteria"
+          actionLabel="Clear Filters"
+          onAction={() => setFilters({ search: '', department: '', country: '' })}
         />
-      </Box>
+      ) : (
+        <EmployeeTable
+          employees={employees}
+          total={total}
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
+        />
+      )}
     </Box>
   )
 }
