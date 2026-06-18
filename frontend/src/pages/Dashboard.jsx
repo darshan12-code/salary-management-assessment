@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Box,
   Grid,
-  Card,
-  CardContent,
   Typography,
-  Paper,
+  Alert,
+  Button,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import {
   People as PeopleIcon,
@@ -14,91 +15,128 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material'
 import { analyticsService } from '../services/analyticsService'
-import Loading from '../components/Loading'
-
-const StatCard = ({ title, value, icon, color }) => (
-  <Card>
-    <CardContent>
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography color="textSecondary" gutterBottom variant="h6">
-            {title}
-          </Typography>
-          <Typography variant="h4" component="h2">
-            {value}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            backgroundColor: `${color}20`,
-            borderRadius: 2,
-            p: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {React.cloneElement(icon, { sx: { fontSize: 40, color } })}
-        </Box>
-      </Box>
-    </CardContent>
-  </Card>
-)
+import StatCard from '../components/StatCard'
+import DashboardCharts from '../components/DashboardCharts'
+import DashboardTable from '../components/DashboardTable'
+import DashboardSkeleton from '../components/DashboardSkeleton'
+import EmptyState from '../components/EmptyState'
 
 const Dashboard = () => {
-  const { data: analytics, isLoading, error } = useQuery({
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+
+  const { data: analytics, isLoading, error, refetch } = useQuery({
     queryKey: ['analytics'],
     queryFn: analyticsService.getAnalytics,
   })
 
-  if (isLoading) return <Loading />
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  if (isLoading) {
+    return <DashboardSkeleton />
+  }
+
   if (error) {
     return (
-      <Box>
-        <Typography color="error">Error loading analytics data</Typography>
+      <Box sx={{ p: 3 }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom>
+          Dashboard
+        </Typography>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+          sx={{ mb: 3 }}
+        >
+          Error loading analytics data: {error.message}
+        </Alert>
+      </Box>
+    )
+  }
+
+  if (!analytics) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom>
+          Dashboard
+        </Typography>
+        <EmptyState message="No analytics data available" />
       </Box>
     )
   }
 
   return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
+      <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom>
         Dashboard
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={4}>
+
+      {/* KPI Cards */}
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Grid item xs={12} sm={6} lg={4}>
           <StatCard
             title="Total Employees"
-            value={analytics?.total_employees || 0}
+            value={analytics.total_employees || 0}
             icon={<PeopleIcon />}
             color="#1976d2"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} lg={4}>
           <StatCard
             title="Total Payroll"
-            value={`$${(analytics?.total_payroll || 0).toLocaleString()}`}
+            value={formatCurrency(analytics.total_payroll || 0)}
             icon={<MoneyIcon />}
             color="#2e7d32"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} lg={4}>
           <StatCard
             title="Average Salary"
-            value={`$${(analytics?.average_salary || 0).toLocaleString()}`}
+            value={formatCurrency(analytics.average_salary || 0)}
             icon={<TrendingUpIcon />}
             color="#ed6c02"
           />
         </Grid>
-        <Grid item xs={12}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Welcome to Salary Management System
-            </Typography>
-            <Typography variant="body1" color="textSecondary">
-              Use the navigation menu to manage employees and view analytics.
-            </Typography>
-          </Paper>
+      </Grid>
+
+      {/* Charts */}
+      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Typography
+          variant={isMobile ? 'h6' : 'h5'}
+          gutterBottom
+          fontWeight="bold"
+        >
+          Analytics Overview
+        </Typography>
+        <DashboardCharts analytics={analytics} />
+      </Box>
+
+      {/* Employee Tables */}
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid item xs={12} lg={6}>
+          <DashboardTable
+            title="Top 10 Highest Paid Employees"
+            employees={analytics.highest_paid_employees || []}
+            currency={analytics.currency || 'USD'}
+          />
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <DashboardTable
+            title="Top 10 Lowest Paid Employees"
+            employees={analytics.lowest_paid_employees || []}
+            currency={analytics.currency || 'USD'}
+          />
         </Grid>
       </Grid>
     </Box>
