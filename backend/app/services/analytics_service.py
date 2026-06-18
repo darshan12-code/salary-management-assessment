@@ -17,28 +17,20 @@ class AnalyticsService:
     def get_analytics(self) -> Dict:
         """
         Get complete analytics for the salary management system.
+        
+        Business Rule: Analytics are grouped by currency to avoid mixing different currencies.
+        Total payroll and average salary are calculated per currency, not aggregated across currencies.
         All calculations are performed in the database using aggregate functions.
         Only includes active employees.
         """
         # Base query for active employees only
         base_query = self.db.query(Employee).filter(Employee.is_active == True)
         
-        # 1. Total employees
+        # 1. Total employees (across all currencies)
         total_employees = base_query.count()
         
-        # 2. Total payroll expenditure
-        total_payroll_result = base_query.with_entities(
-            func.sum(Employee.salary)
-        ).scalar()
-        total_payroll = total_payroll_result if total_payroll_result else 0
-        
-        # 3. Average salary
-        average_salary_result = base_query.with_entities(
-            func.avg(Employee.salary)
-        ).scalar()
-        average_salary = average_salary_result if average_salary_result else 0
-        
-        # 4. Average salary by department
+        # 2. Average salary by department (aggregated across currencies - for comparison only)
+        # Note: This mixes currencies, so it's for informational purposes only
         avg_salary_by_dept = self.db.query(
             Employee.department,
             func.count(Employee.id).label('count'),
@@ -56,7 +48,7 @@ class AnalyticsService:
             for dept, count, total_payroll, avg_salary in avg_salary_by_dept
         ]
         
-        # 5. Average salary by country
+        # 3. Average salary by country (aggregated across currencies - for comparison only)
         avg_salary_by_country = self.db.query(
             Employee.country,
             func.count(Employee.id).label('count'),
@@ -72,7 +64,7 @@ class AnalyticsService:
             for country, count, avg_salary in avg_salary_by_country
         ]
         
-        # 6. Employee distribution by department (count and payroll)
+        # 4. Employee distribution by department (count and payroll - aggregated across currencies)
         employees_by_dept = self.db.query(
             Employee.department,
             func.count(Employee.id).label('count'),
@@ -90,7 +82,7 @@ class AnalyticsService:
             for dept, count, total_payroll, avg_salary in employees_by_dept
         ]
         
-        # 7. Employee distribution by country
+        # 5. Employee distribution by country
         employees_by_country = self.db.query(
             Employee.country,
             func.count(Employee.id).label('count'),
@@ -106,63 +98,101 @@ class AnalyticsService:
             for country, count, avg_salary in employees_by_country
         ]
         
-        # 8. Payroll expenditure by department
-        payroll_by_dept = self.db.query(
-            Employee.department,
-            func.sum(Employee.salary).label('total_payroll'),
-            func.count(Employee.id).label('count'),
-            func.avg(Employee.salary).label('average_salary')
-        ).filter(Employee.is_active == True).group_by(Employee.department).all()
+        # 6. Get all unique currencies
+        currencies = self.db.query(Employee.currency).filter(
+            Employee.is_active == True
+        ).distinct().all()
+        currency_list = [c[0] for c in currencies]
         
-        payroll_by_department = [
-            {
-                "department": dept,
-                "count": count,
-                "average_salary": round(float(avg_salary), 2),
-                "total_payroll": round(float(total_payroll), 2)
-            }
-            for dept, total_payroll, count, avg_salary in payroll_by_dept
-        ]
-        
-        # 9. Top 10 highest paid employees
-        highest_paid = base_query.order_by(desc(Employee.salary)).limit(10).all()
-        
-        highest_paid_employees = [
-            {
-                "id": emp.id,
-                "employee_id": emp.employee_id,
-                "name": emp.name,
-                "department": emp.department,
-                "salary": float(emp.salary),
-                "currency": emp.currency
-            }
-            for emp in highest_paid
-        ]
-        
-        # 10. Top 10 lowest paid employees
-        lowest_paid = base_query.order_by(asc(Employee.salary)).limit(10).all()
-        
-        lowest_paid_employees = [
-            {
-                "id": emp.id,
-                "employee_id": emp.employee_id,
-                "name": emp.name,
-                "department": emp.department,
-                "salary": float(emp.salary),
-                "currency": emp.currency
-            }
-            for emp in lowest_paid
-        ]
+        # 7. Build currency-grouped analytics
+        currency_analytics = []
+        for currency in currency_list:
+            # Base query for this currency only
+            currency_query = base_query.filter(Employee.currency == currency)
+            
+            # Total employees in this currency
+            currency_employee_count = currency_query.count()
+            
+            # Total payroll in this currency
+            total_payroll_result = currency_query.with_entities(
+                func.sum(Employee.salary)
+            ).scalar()
+            total_payroll = total_payroll_result if total_payroll_result else 0
+            
+            # Average salary in this currency
+            average_salary_result = currency_query.with_entities(
+                func.avg(Employee.salary)
+            ).scalar()
+            average_salary = average_salary_result if average_salary_result else 0
+            
+            # Payroll by department for this currency
+            payroll_by_dept = self.db.query(
+                Employee.department,
+                func.sum(Employee.salary).label('total_payroll'),
+                func.count(Employee.id).label('count'),
+                func.avg(Employee.salary).label('average_salary')
+            ).filter(
+                Employee.is_active == True,
+                Employee.currency == currency
+            ).group_by(Employee.department).all()
+            
+            payroll_by_department = [
+                {
+                    "department": dept,
+                    "count": count,
+                    "average_salary": round(float(avg_salary), 2),
+                    "total_payroll": round(float(total_payroll), 2)
+                }
+                for dept, total_payroll, count, avg_salary in payroll_by_dept
+            ]
+            
+            # Top 10 highest paid employees in this currency
+            highest_paid = currency_query.order_by(desc(Employee.salary)).limit(10).all()
+            
+            highest_paid_employees = [
+                {
+                    "id": emp.id,
+                    "employee_id": emp.employee_id,
+                    "name": emp.name,
+                    "department": emp.department,
+                    "salary": float(emp.salary),
+                    "currency": emp.currency,
+                    "country": emp.country
+                }
+                for emp in highest_paid
+            ]
+            
+            # Top 10 lowest paid employees in this currency
+            lowest_paid = currency_query.order_by(asc(Employee.salary)).limit(10).all()
+            
+            lowest_paid_employees = [
+                {
+                    "id": emp.id,
+                    "employee_id": emp.employee_id,
+                    "name": emp.name,
+                    "department": emp.department,
+                    "salary": float(emp.salary),
+                    "currency": emp.currency,
+                    "country": emp.country
+                }
+                for emp in lowest_paid
+            ]
+            
+            currency_analytics.append({
+                "currency": currency,
+                "total_employees": currency_employee_count,
+                "total_payroll": float(total_payroll) if total_payroll else 0.0,
+                "average_salary": float(average_salary) if average_salary else 0.0,
+                "payroll_by_department": payroll_by_department,
+                "highest_paid_employees": highest_paid_employees,
+                "lowest_paid_employees": lowest_paid_employees
+            })
         
         return {
             "total_employees": total_employees,
-            "total_payroll": float(total_payroll) if total_payroll else 0.0,
-            "average_salary": float(average_salary) if average_salary else 0.0,
             "average_salary_by_department": average_salary_by_department,
             "average_salary_by_country": average_salary_by_country,
             "employees_by_department": employees_by_department,
             "employees_by_country": employees_by_country_list,
-            "payroll_by_department": payroll_by_department,
-            "highest_paid_employees": highest_paid_employees,
-            "lowest_paid_employees": lowest_paid_employees
+            "currency_analytics": currency_analytics
         }

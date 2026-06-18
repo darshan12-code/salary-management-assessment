@@ -83,6 +83,7 @@ const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error
           component="h1"
           gutterBottom
           sx={{ mb: { xs: 2, sm: 3 } }}
+          fontWeight={600}
         >
           {mode === 'create' ? 'Create New Employee' : 'Edit Employee'}
         </Typography>

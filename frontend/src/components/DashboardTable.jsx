@@ -4,13 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   useTheme,
   useMediaQuery,
 } from '@mui/material'
@@ -76,7 +69,8 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
           <Typography
             variant={isMobile ? 'body1' : 'h6'}
             gutterBottom
-            fontWeight="bold"
+            fontWeight={600}
+            color="text.primary"
           >
             {title}
           </Typography>
@@ -88,7 +82,7 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
               justifyContent: 'center',
             }}
           >
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" color="text.secondary">
               Loading...
             </Typography>
           </Box>
@@ -104,7 +98,8 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
           <Typography
             variant={isMobile ? 'body1' : 'h6'}
             gutterBottom
-            fontWeight="bold"
+            fontWeight={600}
+            color="text.primary"
           >
             {title}
           </Typography>
@@ -134,7 +129,8 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
           <Typography
             variant={isMobile ? 'body1' : 'h6'}
             gutterBottom
-            fontWeight="bold"
+            fontWeight={600}
+            color="text.primary"
           >
             {title}
           </Typography>
@@ -146,7 +142,7 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
               justifyContent: 'center',
             }}
           >
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" color="text.secondary">
               No data available
             </Typography>
           </Box>
@@ -161,7 +157,8 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
         <Typography
           variant={isMobile ? 'body1' : 'h6'}
           gutterBottom
-          fontWeight="bold"
+          fontWeight={600}
+          color="text.primary"
         >
           {title}
         </Typography>
@@ -178,6 +175,7 @@ const DashboardTable = ({ title, employees, currency, isLoading, error, onRetry 
               },
               '& .MuiDataGrid-columnHeader': {
                 fontSize: isMobile ? '0.875rem' : '1rem',
+                fontWeight: 600,
               },
             }}
           />

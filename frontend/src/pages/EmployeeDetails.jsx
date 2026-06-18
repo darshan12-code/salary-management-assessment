@@ -142,7 +142,7 @@ const EmployeeDetails = () => {
         >
           Back to Employees
         </Button>
-        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" fontWeight={600}>
           Employee Details
         </Typography>
       </Box>
@@ -181,7 +181,7 @@ const EmployeeDetails = () => {
         </Grid>
 
         <Grid item xs={12}>
-          <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom sx={{ mt: 2 }}>
+          <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom sx={{ mt: 2 }} fontWeight={600}>
             Salary History
           </Typography>
           <SalaryHistoryTable

@@ -2,13 +2,11 @@ import React from 'react'
 import {
   Box,
   Typography,
-  Paper,
   useTheme,
   useMediaQuery,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import EmptyState from './EmptyState'
-import { History as HistoryIcon } from '@mui/icons-material'
 
 const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry }) => {
   const theme = useTheme()
@@ -68,7 +66,7 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
   if (isLoading) {
     return (
       <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="body2" color="textSecondary">
+        <Typography variant="body2" color="text.secondary">
           Loading salary history...
         </Typography>
       </Box>
@@ -107,6 +105,7 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
           },
           '& .MuiDataGrid-columnHeader': {
             fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
           },
         }}
       />

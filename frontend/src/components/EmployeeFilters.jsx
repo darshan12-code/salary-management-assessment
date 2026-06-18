@@ -1,9 +1,13 @@
 import React from 'react'
-import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Button } from '@mui/material'
+import { Box, TextField, Select, MenuItem, FormControl, InputLabel, Button, useTheme, useMediaQuery } from '@mui/material'
 import { Clear as ClearIcon } from '@mui/icons-material'
 import { useDebounce } from '../hooks/useDebounce'
 
 const EmployeeFilters = ({ filters, onFilterChange }) => {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+
   const [searchInput, setSearchInput] = React.useState(filters.search || '')
   const debouncedSearch = useDebounce(searchInput, 500)
 
@@ -31,16 +35,26 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
   const hasActiveFilters = filters.search || filters.department || filters.country
 
   return (
-    <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={3}>
+    <Box 
+      display="flex" 
+      gap={{ xs: 1.5, sm: 2 }} 
+      flexWrap="wrap" 
+      alignItems="center"
+      sx={{ mb: 0 }}
+    >
       <TextField
-        label="Search by name or employee ID"
+        label="Search"
         value={searchInput}
         onChange={handleSearchChange}
-        size="small"
-        sx={{ minWidth: 250, flexGrow: 1 }}
-        placeholder="Enter search term..."
+        size={isMobile ? 'small' : 'medium'}
+        sx={{ 
+          minWidth: { xs: 200, sm: 250 }, 
+          maxWidth: { xs: 200, sm: 300 },
+          flexGrow: { xs: 1, sm: 0 }
+        }}
+        placeholder="Name or ID..."
       />
-      <FormControl size="small" sx={{ minWidth: 150 }}>
+      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: 140, sm: 160 } }}>
         <InputLabel>Department</InputLabel>
         <Select
           value={filters.department || ''}
@@ -56,7 +70,7 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
           <MenuItem value="Operations">Operations</MenuItem>
         </Select>
       </FormControl>
-      <FormControl size="small" sx={{ minWidth: 150 }}>
+      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: 140, sm: 160 } }}>
         <InputLabel>Country</InputLabel>
         <Select
           value={filters.country || ''}
@@ -75,12 +89,12 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
       {hasActiveFilters && (
         <Button
           variant="outlined"
-          size="small"
+          size={isMobile ? 'small' : 'medium'}
           startIcon={<ClearIcon />}
           onClick={handleClearFilters}
-          sx={{ height: 40 }}
+          sx={{ height: { xs: 36, sm: 40 } }}
         >
-          Clear Filters
+          Clear
         </Button>
       )}
     </Box>

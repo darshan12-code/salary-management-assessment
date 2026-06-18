@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -21,8 +20,6 @@ import EmptyState from '../components/EmptyState'
 import EmployeeForm from '../components/EmployeeForm'
 
 const Employees = () => {
-  const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
   
   // Dialog state
@@ -32,37 +29,17 @@ const Employees = () => {
   const [formSuccess, setFormSuccess] = useState(false)
   const [formError, setFormError] = useState(null)
   
-  // Initialize state from URL params
-  const [paginationModel, setPaginationModel] = useState(() => {
-    const pageParam = parseInt(searchParams.get('page') || '0')
-    const pageSizeParam = parseInt(searchParams.get('pageSize') || '10')
-    return {
-      page: pageParam,
-      pageSize: pageSizeParam,
-    }
+  // Local state for filters and pagination (no URL synchronization)
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
   })
   
-  const [filters, setFilters] = useState(() => {
-    const searchParam = searchParams.get('search') || ''
-    const departmentParam = searchParams.get('department') || ''
-    const countryParam = searchParams.get('country') || ''
-    return {
-      search: searchParam,
-      department: departmentParam,
-      country: countryParam,
-    }
+  const [filters, setFilters] = useState({
+    search: '',
+    department: '',
+    country: '',
   })
-
-  // Update URL params when filters or pagination change (but not on initial mount)
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (filters.search) params.set('search', filters.search)
-    if (filters.department) params.set('department', filters.department)
-    if (filters.country) params.set('country', filters.country)
-    params.set('page', paginationModel.page.toString())
-    params.set('pageSize', paginationModel.pageSize.toString())
-    setSearchParams(params)
-  }, [filters, paginationModel, setSearchParams])
 
   // Create employee mutation
   const createMutation = useMutation({
@@ -170,29 +147,34 @@ const Employees = () => {
   const total = employeesData?.total || 0
 
   return (
-    <Box sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={{ xs: 2, sm: 3 }}
         flexDirection={{ xs: 'column', sm: 'row' }}
         gap={{ xs: 2, sm: 0 }}
       >
-        <Typography variant="h4" component="h1">
+        <Typography variant="h4" component="h1" fontWeight={600}>
           Employees
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateDialogOpen}
-          fullWidth={{ xs: true, sm: false }}
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={handleCreateDialogOpen} 
+          size="small" 
+          sx={{
+            width: { xs: 'auto', sm: 'auto' }, 
+            minWidth: '150px',                 
+            height: '36px'                    
+          }}
         >
           Add Employee
         </Button>
       </Box>
 
-      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
         <EmployeeFilters filters={filters} onFilterChange={handleFilterChange} />
       </Paper>
 
@@ -222,7 +204,7 @@ const Employees = () => {
           sx: { maxHeight: '90vh' },
         }}
       >
-        <DialogTitle>Create New Employee</DialogTitle>
+        <DialogTitle fontWeight={600}>Create New Employee</DialogTitle>
         <DialogContent dividers>
           <EmployeeForm
             mode="create"
@@ -249,7 +231,7 @@ const Employees = () => {
           sx: { maxHeight: '90vh' },
         }}
       >
-        <DialogTitle>Edit Employee</DialogTitle>
+        <DialogTitle fontWeight={600}>Edit Employee</DialogTitle>
         <DialogContent dividers>
           {editingEmployee && (
             <EmployeeForm

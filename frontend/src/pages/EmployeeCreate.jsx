@@ -52,7 +52,7 @@ const EmployeeCreate = () => {
         >
           Back to Employees
         </Button>
-        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" fontWeight={600}>
           Add New Employee
         </Typography>
       </Box>

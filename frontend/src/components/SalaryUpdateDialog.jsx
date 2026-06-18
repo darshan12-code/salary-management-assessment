@@ -57,13 +57,13 @@ const SalaryUpdateDialog = ({ open, onClose, onSubmit, currentSalary, currency, 
       fullWidth
       fullScreen={isMobile}
     >
-      <DialogTitle>Update Salary</DialogTitle>
+      <DialogTitle fontWeight={600}>Update Salary</DialogTitle>
       <DialogContent>
         <Box sx={{ mb: 3, mt: 1 }}>
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
             Current Salary
           </Typography>
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" fontWeight={600} color="text.primary">
             {formatSalary(currentSalary, currency)}
           </Typography>
         </Box>

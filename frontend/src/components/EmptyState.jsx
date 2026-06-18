@@ -20,14 +20,15 @@ const EmptyState = ({ message, actionLabel, onAction }) => {
         sx={{ 
           fontSize: isMobile ? 60 : 80, 
           color: 'text.secondary', 
-          mb: 2 
+          mb: 2,
+          opacity: 0.5,
         }} 
       />
       <Typography 
         variant={isMobile ? "body1" : "h6"} 
-        color="textSecondary" 
+        color="text.secondary" 
         gutterBottom
-        sx={{ maxWidth: 500 }}
+        sx={{ maxWidth: 500, fontWeight: 500 }}
       >
         {message}
       </Typography>

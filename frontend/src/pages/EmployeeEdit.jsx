@@ -87,7 +87,7 @@ const EmployeeEdit = () => {
         >
           Back to Employee Details
         </Button>
-        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" fontWeight={600}>
           Edit Employee
         </Typography>
       </Box>

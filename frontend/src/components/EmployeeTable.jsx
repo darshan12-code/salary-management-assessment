@@ -3,18 +3,20 @@ import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Chip,
-  Typography,
-  Paper,
-  Button,
   IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import {
   DataGrid
 } from '@mui/x-data-grid'
-import { Edit as EditIcon, Visibility as VisibilityIcon } from '@mui/icons-material'
+import { Edit as EditIcon } from '@mui/icons-material'
 
 const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelChange, onEdit }) => {
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleRowClick = (params) => {
     navigate(`/employees/${params.row.id}`)
@@ -114,21 +116,35 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
           label={params.value ? 'Active' : 'Inactive'}
           color={params.value ? 'success' : 'default'}
           size="small"
+          sx={{
+            fontWeight: 500,
+            backgroundColor: params.value ? 'rgba(22, 163, 74, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+            color: params.value ? '#16A34A' : '#64748B',
+            '&:hover': {
+              backgroundColor: params.value ? 'rgba(22, 163, 74, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+            },
+          }}
         />
       ),
     },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 100,
-      flex: 1,
-      minWidth: 100,
+      width: 80,
+      flex: 0,
+      minWidth: 80,
       sortable: false,
+      pinnable: true,
       renderCell: (params) => (
         <IconButton
           size="small"
           onClick={(event) => handleEditClick(event, params)}
-          color="primary"
+          sx={{
+            color: '#2563EB',
+            '&:hover': {
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            },
+          }}
           title="Edit Employee"
         >
           <EditIcon fontSize="small" />
@@ -149,9 +165,30 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
         paginationMode="server"
         onRowClick={handleRowClick}
         sx={{
+          '& .MuiDataGrid-cell': {
+            fontSize: isMobile ? '0.875rem' : '1rem',
+          },
+          '& .MuiDataGrid-columnHeader': {
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+          },
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
-            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            backgroundColor: 'rgba(37, 99, 235, 0.04)',
+          },
+          '& .MuiDataGrid-pinnedColumns': {
+            backgroundColor: '#FFFFFF',
+            boxShadow: '2px 0 4px rgba(0, 0, 0, 0.05)',
+          },
+          '& .MuiDataGrid-pinnedColumns .MuiDataGrid-columnHeader': {
+            backgroundColor: '#F8FAFC',
+          },
+          '& .MuiDataGrid-footerContainer': {
+            '& .MuiTablePagination-root': {
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: isMobile ? '0.875rem' : '1rem',
+              },
+            },
           },
         }}
         disableRowSelectionOnClick

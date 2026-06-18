@@ -23,7 +23,7 @@ const StatCardSkeleton = () => {
             variant="rectangular"
             width={isMobile ? 60 : 80}
             height={isMobile ? 60 : 80}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 3 }}
           />
         </Box>
       </CardContent>

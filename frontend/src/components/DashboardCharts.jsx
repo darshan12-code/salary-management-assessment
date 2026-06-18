@@ -32,16 +32,20 @@ const DashboardCharts = ({ analytics }) => {
   // Prepare data for charts
   const departmentData = analytics?.employees_by_department || []
   const countryData = analytics?.employees_by_country || []
-  const payrollData = analytics?.payroll_by_department || []
+  // Payroll data is now grouped by currency - use the first currency for display or aggregate
+  const currencyAnalytics = analytics?.currency_analytics || []
+  const payrollData = currencyAnalytics.length > 0 
+    ? currencyAnalytics[0]?.payroll_by_department || []
+    : []
 
-  // Colors for charts
-  const COLORS = ['#1976d2', '#2e7d32', '#ed6c02', '#d32f2f', '#7b1fa2', '#0097a7']
+  // Colors for charts - Professional dashboard color palette
+  const COLORS = ['#2563EB', '#7C3AED', '#16A34A', '#F59E0B', '#DC2626', '#0891B2']
 
   // Format currency
-  const formatCurrency = (value) => {
+  const formatCurrency = (value, currencyCode = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currencyCode,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value)
@@ -74,7 +78,7 @@ const DashboardCharts = ({ analytics }) => {
                   <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="count" fill="#1976d2" name="Employees" />
+                  <Bar dataKey="count" fill="#2563EB" name="Employees" />
                 </BarChart>
               </ResponsiveContainer>
             </Box>
@@ -135,7 +139,7 @@ const DashboardCharts = ({ analytics }) => {
               gutterBottom
               fontWeight="bold"
             >
-              Payroll by Department
+              Payroll by Department {currencyAnalytics.length > 0 && `(${currencyAnalytics[0].currency})`}
             </Typography>
             <Box sx={{ height: chartHeight }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -152,9 +156,11 @@ const DashboardCharts = ({ analytics }) => {
                     tick={{ fontSize: isMobile ? 10 : 12 }}
                     tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                   />
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <Tooltip 
+                    formatter={(value) => formatCurrency(value, currencyAnalytics.length > 0 ? currencyAnalytics[0].currency : 'USD')} 
+                  />
                   <Legend />
-                  <Bar dataKey="total_payroll" fill="#2e7d32" name="Payroll" />
+                  <Bar dataKey="total_payroll" fill="#16A34A" name="Payroll" />
                 </BarChart>
               </ResponsiveContainer>
             </Box>

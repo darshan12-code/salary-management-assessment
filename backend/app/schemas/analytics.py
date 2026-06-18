@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class DepartmentAnalytics(BaseModel):
-    """Analytics data for a specific department."""
+    """Analytics data for a specific department within a currency group."""
     
     department: str = Field(..., description="Department name")
     count: int = Field(..., description="Number of employees in department")
@@ -29,39 +29,56 @@ class EmployeeSalaryInfo(BaseModel):
     department: str = Field(..., description="Employee department")
     salary: Decimal = Field(..., description="Employee salary")
     currency: str = Field(..., description="Salary currency")
+    country: str = Field(..., description="Employee country")
+
+
+class CurrencyAnalytics(BaseModel):
+    """Analytics data grouped by currency to avoid mixing different currencies."""
+    
+    currency: str = Field(..., description="Currency code (e.g., USD, EUR)")
+    total_employees: int = Field(..., description="Number of employees with this currency")
+    total_payroll: Decimal = Field(..., description="Total payroll in this currency")
+    average_salary: Decimal = Field(..., description="Average salary in this currency")
+    payroll_by_department: List[DepartmentAnalytics] = Field(
+        ...,
+        description="Payroll breakdown by department for this currency"
+    )
+    highest_paid_employees: List[EmployeeSalaryInfo] = Field(
+        ...,
+        description="Top 10 highest paid employees in this currency"
+    )
+    lowest_paid_employees: List[EmployeeSalaryInfo] = Field(
+        ...,
+        description="Top 10 lowest paid employees in this currency"
+    )
 
 
 class AnalyticsResponse(BaseModel):
-    """Complete analytics response for the salary management system."""
+    """Complete analytics response for the salary management system.
     
-    total_employees: int = Field(..., description="Total number of active employees")
-    total_payroll: Decimal = Field(..., description="Total payroll expenditure across all employees")
-    average_salary: Decimal = Field(..., description="Average salary across all employees")
+    Business Rule: Analytics are grouped by currency to avoid mixing different currencies.
+    Total payroll and average salary are not aggregated across currencies.
+    Instead, use currency_analytics to see breakdowns per currency.
+    """
+    
+    total_employees: int = Field(..., description="Total number of active employees across all currencies")
     average_salary_by_department: List[DepartmentAnalytics] = Field(
         ...,
-        description="Average salary breakdown by department"
+        description="Average salary breakdown by department (aggregated across currencies)"
     )
     average_salary_by_country: List[CountryAnalytics] = Field(
         ...,
-        description="Average salary breakdown by country"
+        description="Average salary breakdown by country (aggregated across currencies)"
     )
     employees_by_department: List[DepartmentAnalytics] = Field(
         ...,
-        description="Employee count and payroll by department"
+        description="Employee count and payroll by department (aggregated across currencies)"
     )
     employees_by_country: List[CountryAnalytics] = Field(
         ...,
         description="Employee count by country"
     )
-    payroll_by_department: List[DepartmentAnalytics] = Field(
+    currency_analytics: List[CurrencyAnalytics] = Field(
         ...,
-        description="Payroll expenditure by department"
-    )
-    highest_paid_employees: List[EmployeeSalaryInfo] = Field(
-        ...,
-        description="Top 10 highest paid employees"
-    )
-    lowest_paid_employees: List[EmployeeSalaryInfo] = Field(
-        ...,
-        description="Top 10 lowest paid employees"
+        description="Analytics grouped by currency - use this for payroll and salary data"
     )

@@ -15,14 +15,16 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Divider,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
+  AttachMoney as AttachMoneyIcon,
 } from '@mui/icons-material'
 
-const drawerWidth = 240
+const drawerWidth = 260
 
 const navItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
@@ -49,20 +51,81 @@ const AppLayout = () => {
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+      <Toolbar
+        sx={{
+          px: 3,
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <AttachMoneyIcon
+          sx={{
+            mr: 1,
+            fontSize: 32,
+            color: 'primary.main',
+          }}
+        />
+        <Typography
+          variant="h6"
+          noWrap
+          component="div"
+          sx={{
+            fontWeight: 600,
+            background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           Salary Management
         </Typography>
       </Toolbar>
-      <List>
+      <Divider />
+      <List sx={{ px: 2, py: 2 }}>
         {navItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
+          <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
+              sx={{
+                borderRadius: 2,
+                py: 1.5,
+                px: 2,
+                transition: 'all 0.2s ease-in-out',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: 'primary.contrastText',
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: location.pathname === item.path ? 'primary.main' : 'text.secondary',
+                  transition: 'color 0.2s ease-in-out',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={item.text}
+                sx={{
+                  '& .MuiTypography-root': {
+                    fontWeight: location.pathname === item.path ? 600 : 500,
+                  },
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -75,9 +138,14 @@ const AppLayout = () => {
       <CssBaseline />
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
+          backgroundColor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          color: 'text.primary',
         }}
       >
         <Toolbar>
@@ -90,7 +158,15 @@ const AppLayout = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{
+              fontWeight: 600,
+              color: 'text.primary',
+            }}
+          >
             Salary Management System
           </Typography>
         </Toolbar>
@@ -111,6 +187,9 @@ const AppLayout = () => {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              backgroundColor: 'background.paper',
+              borderRight: '1px solid',
+              borderColor: 'divider',
             },
           }}
         >
@@ -123,6 +202,9 @@ const AppLayout = () => {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              backgroundColor: 'background.paper',
+              borderRight: '1px solid',
+              borderColor: 'divider',
             },
           }}
           open
@@ -134,9 +216,10 @@ const AppLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
           width: { md: `calc(100% - ${drawerWidth}px)` },
-          mt: 8,
+          mt: '64px',
+          minHeight: 'calc(100vh - 64px)',
+          backgroundColor: 'background.default',
         }}
       >
         <Outlet />
