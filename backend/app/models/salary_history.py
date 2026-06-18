@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, Numeric, ForeignKey, Index
+from sqlalchemy import DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -28,11 +28,6 @@ class SalaryHistory(Base):
     employee: Mapped["Employee"] = relationship(
         back_populates="salary_history",
         lazy="selectin"
-    )
-    
-    # Indexes
-    __table_args__ = (
-        Index("ix_salary_history_employee_id", "employee_id"),
     )
     
     def __repr__(self) -> str:

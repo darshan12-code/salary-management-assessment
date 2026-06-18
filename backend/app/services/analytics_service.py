@@ -41,29 +41,35 @@ class AnalyticsService:
         # 4. Average salary by department
         avg_salary_by_dept = self.db.query(
             Employee.department,
+            func.count(Employee.id).label('count'),
+            func.sum(Employee.salary).label('total_payroll'),
             func.avg(Employee.salary).label('avg_salary')
         ).filter(Employee.is_active == True).group_by(Employee.department).all()
         
         average_salary_by_department = [
             {
                 "department": dept,
-                "average_salary": round(float(avg_salary), 2)
+                "count": count,
+                "average_salary": round(float(avg_salary), 2),
+                "total_payroll": round(float(total_payroll), 2)
             }
-            for dept, avg_salary in avg_salary_by_dept
+            for dept, count, total_payroll, avg_salary in avg_salary_by_dept
         ]
         
         # 5. Average salary by country
         avg_salary_by_country = self.db.query(
             Employee.country,
+            func.count(Employee.id).label('count'),
             func.avg(Employee.salary).label('avg_salary')
         ).filter(Employee.is_active == True).group_by(Employee.country).all()
         
         average_salary_by_country = [
             {
                 "country": country,
+                "count": count,
                 "average_salary": round(float(avg_salary), 2)
             }
-            for country, avg_salary in avg_salary_by_country
+            for country, count, avg_salary in avg_salary_by_country
         ]
         
         # 6. Employee distribution by department (count and payroll)
@@ -150,8 +156,8 @@ class AnalyticsService:
         
         return {
             "total_employees": total_employees,
-            "total_payroll": round(float(total_payroll), 2),
-            "average_salary": round(float(average_salary), 2),
+            "total_payroll": float(total_payroll) if total_payroll else 0.0,
+            "average_salary": float(average_salary) if average_salary else 0.0,
             "average_salary_by_department": average_salary_by_department,
             "average_salary_by_country": average_salary_by_country,
             "employees_by_department": employees_by_department,

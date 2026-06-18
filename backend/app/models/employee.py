@@ -1,5 +1,5 @@
 from datetime import date
-from sqlalchemy import String, Numeric, Boolean, Date, Index
+from sqlalchemy import String, Numeric, Boolean, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -27,14 +27,6 @@ class Employee(Base, TimestampMixin):
         back_populates="employee",
         cascade="all, delete-orphan",
         lazy="selectin"
-    )
-    
-    # Indexes
-    __table_args__ = (
-        Index("ix_employees_employee_id", "employee_id"),
-        Index("ix_employees_email", "email"),
-        Index("ix_employees_department", "department"),
-        Index("ix_employees_country", "country"),
     )
     
     def __repr__(self) -> str:
