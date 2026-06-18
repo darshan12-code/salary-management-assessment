@@ -1,17 +1,20 @@
 import React from 'react'
-import { Box, Skeleton } from '@mui/material'
+import { Box, Skeleton, useTheme, useMediaQuery } from '@mui/material'
 
 const TableSkeleton = ({ rowCount = 10, columnCount = 10 }) => {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
       {/* Header Skeleton */}
-      <Box sx={{ display: 'flex', borderBottom: '1px solid rgba(224, 224, 224, 1)', p: 2 }}>
+      <Box sx={{ display: 'flex', borderBottom: '1px solid #E2E8F0', p: { xs: 1.5, sm: 2 }, backgroundColor: '#F8FAFC' }}>
         {Array.from({ length: columnCount }).map((_, index) => (
           <Skeleton
             key={`header-${index}`}
             variant="text"
             width={120}
-            height={32}
+            height={isMobile ? 28 : 32}
             sx={{ mr: 2, flex: 1 }}
           />
         ))}
@@ -23,10 +26,10 @@ const TableSkeleton = ({ rowCount = 10, columnCount = 10 }) => {
           key={`row-${rowIndex}`}
           sx={{
             display: 'flex',
-            borderBottom: '1px solid rgba(224, 224, 224, 1)',
-            p: 2,
+            borderBottom: '1px solid #E2E8F0',
+            p: { xs: 1.5, sm: 2 },
             '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              backgroundColor: 'rgba(37, 99, 235, 0.04)',
             },
           }}
         >
@@ -35,7 +38,7 @@ const TableSkeleton = ({ rowCount = 10, columnCount = 10 }) => {
               key={`cell-${rowIndex}-${colIndex}`}
               variant="text"
               width={100}
-              height={28}
+              height={isMobile ? 24 : 28}
               sx={{ mr: 2, flex: 1 }}
             />
           ))}

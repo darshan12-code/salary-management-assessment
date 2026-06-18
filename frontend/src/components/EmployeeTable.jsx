@@ -190,6 +190,28 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
               },
             },
           },
+          '& .MuiDataGrid-toolbarContainer': {
+            '& .MuiButtonBase-root': {
+              fontSize: isMobile ? '0.875rem' : '1rem',
+            },
+          },
+          '& .MuiDataGrid-menuIconButton': {
+            color: '#64748B',
+            '&:hover': {
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              color: '#2563EB',
+            },
+          },
+          '& .MuiDataGrid-menu': {
+            '& .MuiPaper-root': {
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              borderRadius: '8px',
+              border: '1px solid #E2E8F0',
+            },
+            '& .MuiMenuItem-root': {
+              fontSize: isMobile ? '0.875rem' : '1rem',
+            },
+          },
         }}
         disableRowSelectionOnClick
       />
