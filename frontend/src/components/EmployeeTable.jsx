@@ -4,17 +4,25 @@ import {
   Box,
   Chip,
   Typography,
-  Paper
+  Paper,
+  Button,
+  IconButton,
 } from '@mui/material'
 import {
   DataGrid
 } from '@mui/x-data-grid'
+import { Edit as EditIcon, Visibility as VisibilityIcon } from '@mui/icons-material'
 
-const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelChange }) => {
+const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelChange, onEdit }) => {
   const navigate = useNavigate()
 
   const handleRowClick = (params) => {
     navigate(`/employees/${params.row.id}`)
+  }
+
+  const handleEditClick = (event, params) => {
+    event.stopPropagation()
+    onEdit(params.row)
   }
 
   const columns = [
@@ -102,6 +110,24 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
           color={params.value ? 'success' : 'default'}
           size="small"
         />
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params) => (
+        <IconButton
+          size="small"
+          onClick={(event) => handleEditClick(event, params)}
+          color="primary"
+          title="Edit Employee"
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
       ),
     },
   ]
