@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
+  Card,
+  CardContent,
   Chip,
   IconButton,
   useTheme,
@@ -11,8 +13,10 @@ import {
   DataGrid
 } from '@mui/x-data-grid'
 import { Edit as EditIcon } from '@mui/icons-material'
+import { formatCurrency } from '../utils/formatUtils'
+import { getTableStyles, getPinnedColumnStyles } from './tableStyles'
 
-const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelChange, onEdit }) => {
+const EmployeeTable = memo(({ employees, total, paginationModel, onPaginationModelChange, onEdit }) => {
   const navigate = useNavigate()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -30,98 +34,95 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
   const columns = [
     {
       field: 'employee_id',
-      headerName: 'Employee ID',
-      width: 120,
-      flex: 1,
-      minWidth: 120,
+      headerName: 'ID',
+      width: isMobile ? 60 : 120,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 50 : 120,
     },
     {
       field: 'name',
       headerName: 'Name',
-      width: 180,
-      flex: 1,
-      minWidth: 150,
+      width: isMobile ? 120 : 180,
+      flex: isMobile ? 1 : 1,
+      minWidth: isMobile ? 100 : 150,
     },
     {
       field: 'email',
       headerName: 'Email',
-      width: 220,
-      flex: 1,
-      minWidth: 180,
+      width: isMobile ? 150 : 220,
+      flex: isMobile ? 1 : 1,
+      minWidth: isMobile ? 130 : 180,
     },
     {
       field: 'department',
-      headerName: 'Department',
-      width: 140,
-      flex: 1,
-      minWidth: 120,
+      headerName: 'Dept',
+      width: isMobile ? 100 : 140,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 80 : 120,
     },
     {
       field: 'designation',
       headerName: 'Designation',
-      width: 160,
-      flex: 1,
-      minWidth: 140,
+      width: isMobile ? 120 : 160,
+      flex: isMobile ? 1 : 1,
+      minWidth: isMobile ? 100 : 140,
     },
     {
       field: 'country',
       headerName: 'Country',
-      width: 120,
-      flex: 1,
-      minWidth: 100,
+      width: isMobile ? 80 : 120,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 70 : 100,
     },
     {
       field: 'currency',
       headerName: 'Currency',
-      width: 100,
-      flex: 1,
-      minWidth: 80,
+      width: isMobile ? 70 : 100,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 60 : 80,
     },
    {
       field: 'salary',
       headerName: 'Salary',
-      width: 130,
-      flex: 1,
-      minWidth: 110,
+      width: isMobile ? 100 : 130,
+      flex: isMobile ? 1 : 1,
+      minWidth: isMobile ? 85 : 110,
       valueFormatter: (value, row) => {
         const rowData = row || value?.api?.getRow(value?.id);
         const rawValue = typeof value === 'object' ? value.value : value;
-        
         const currencyCode = rowData?.currency || 'USD';
-
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currencyCode,
-        }).format(rawValue);
+        return formatCurrency(rawValue, currencyCode);
       },
     },
     {
       field: 'joining_date',
-      headerName: 'Joining Date',
-      width: 140,
-      flex: 1,
-      minWidth: 120,
+      headerName: 'Join Date',
+      width: isMobile ? 100 : 140,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 85 : 120,
       valueFormatter: (params) => {
-        return new Date(params.value).toLocaleDateString()
+        return new Date(params).toLocaleDateString()
       },
     },
     {
       field: 'is_active',
       headerName: 'Status',
-      width: 100,
-      flex: 1,
-      minWidth: 90,
+      width: isMobile ? 70 : 100,
+      flex: isMobile ? 0 : 1,
+      minWidth: isMobile ? 60 : 90,
       renderCell: (params) => (
         <Chip
           label={params.value ? 'Active' : 'Inactive'}
           color={params.value ? 'success' : 'default'}
           size="small"
           sx={{
-            fontWeight: 500,
-            backgroundColor: params.value ? 'rgba(22, 163, 74, 0.1)' : 'rgba(100, 116, 139, 0.1)',
-            color: params.value ? '#16A34A' : '#64748B',
+            fontWeight: 600,
+            fontSize: isMobile ? '0.7rem' : '0.75rem',
+            backgroundColor: params.value ? '#DCFCE7' : '#F1F5F9',
+            color: params.value ? '#166534' : '#64748B',
+            border: params.value ? '1px solid #86EFAC' : '1px solid #E2E8F0',
             '&:hover': {
-              backgroundColor: params.value ? 'rgba(22, 163, 74, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+              backgroundColor: params.value ? '#BBF7D0' : '#E2E8F0',
             },
           }}
         />
@@ -130,9 +131,9 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 80,
+      width: isMobile ? 60 : 80,
       flex: 0,
-      minWidth: 80,
+      minWidth: isMobile ? 50 : 80,
       sortable: false,
       pinnable: true,
       renderCell: (params) => (
@@ -141,82 +142,66 @@ const EmployeeTable = ({ employees, total, paginationModel, onPaginationModelCha
           onClick={(event) => handleEditClick(event, params)}
           sx={{
             color: '#2563EB',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            padding: isMobile ? '4px' : '8px',
+            borderRadius: '8px',
             '&:hover': {
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              backgroundColor: 'rgba(37, 99, 235, 0.2)',
+              color: '#1D4ED8',
             },
           }}
           title="Edit Employee"
         >
-          <EditIcon fontSize="small" />
+          <EditIcon fontSize={isMobile ? 'inherit' : 'small'} />
         </IconButton>
       ),
     },
   ]
 
   return (
-    <Box sx={{ height: 600, width: '100%' }}>
-      <DataGrid
-        rows={employees}
-        columns={columns}
-        rowCount={total}
-        paginationModel={paginationModel}
-        onPaginationModelChange={onPaginationModelChange}
-        pageSizeOptions={[10, 20, 50]}
-        paginationMode="server"
-        onRowClick={handleRowClick}
-        sx={{
-          '& .MuiDataGrid-cell': {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-          },
-          '& .MuiDataGrid-columnHeader': {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-          },
-          '& .MuiDataGrid-row:hover': {
-            cursor: 'pointer',
-            backgroundColor: 'rgba(37, 99, 235, 0.04)',
-          },
-          '& .MuiDataGrid-pinnedColumns': {
-            backgroundColor: '#FFFFFF',
-            boxShadow: '2px 0 4px rgba(0, 0, 0, 0.05)',
-          },
-          '& .MuiDataGrid-pinnedColumns .MuiDataGrid-columnHeader': {
-            backgroundColor: '#F8FAFC',
-          },
-          '& .MuiDataGrid-footerContainer': {
-            '& .MuiTablePagination-root': {
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: isMobile ? '0.875rem' : '1rem',
+    <Card
+      sx={{
+        height: '100%',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        borderRadius: '8px',
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'visible',
+      }}
+    >
+      <CardContent sx={{ p: { xs: 1.5, sm: 3, md: 4 }, height: '100%', overflow: 'visible' }}>
+        <Box sx={{ width: '100%', maxWidth: '100%', overflowX: isMobile ? 'auto' : 'visible' }}>
+          <DataGrid
+            rows={employees}
+            columns={columns}
+            rowCount={total}
+            paginationModel={paginationModel}
+            onPaginationModelChange={onPaginationModelChange}
+            pageSizeOptions={[10, 20, 50]}
+            paginationMode="server"
+            onRowClick={handleRowClick}
+            pinnedColumns={{ right: ['actions'] }}
+            sx={{
+              ...getTableStyles(isMobile, isTablet),
+              ...getPinnedColumnStyles(),
+              width: '100%',
+              minWidth: isMobile ? '100%' : '100%',
+              maxWidth: '100%',
+              '& .MuiDataGrid-main': {
+                minWidth: isMobile ? '100%' : '100%',
+                maxWidth: '100%',
               },
-            },
-          },
-          '& .MuiDataGrid-toolbarContainer': {
-            '& .MuiButtonBase-root': {
-              fontSize: isMobile ? '0.875rem' : '1rem',
-            },
-          },
-          '& .MuiDataGrid-menuIconButton': {
-            color: '#64748B',
-            '&:hover': {
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
-              color: '#2563EB',
-            },
-          },
-          '& .MuiDataGrid-menu': {
-            '& .MuiPaper-root': {
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              borderRadius: '8px',
-              border: '1px solid #E2E8F0',
-            },
-            '& .MuiMenuItem-root': {
-              fontSize: isMobile ? '0.875rem' : '1rem',
-            },
-          },
-        }}
-        disableRowSelectionOnClick
-      />
-    </Box>
+              '& .MuiDataGrid-virtualScroller': {
+                overflowX: isMobile ? 'auto' : 'hidden',
+              },
+            }}
+            disableRowSelectionOnClick
+          />
+        </Box>
+      </CardContent>
+    </Card>
   )
-}
+})
 
 export default EmployeeTable

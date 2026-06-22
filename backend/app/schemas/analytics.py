@@ -32,53 +32,55 @@ class EmployeeSalaryInfo(BaseModel):
     country: str = Field(..., description="Employee country")
 
 
-class CurrencyAnalytics(BaseModel):
-    """Analytics data grouped by currency to avoid mixing different currencies."""
+class CountryGroupedAnalytics(BaseModel):
+    """Analytics data grouped by country to provide location-based insights."""
     
-    currency: str = Field(..., description="Currency code (e.g., USD, EUR)")
-    total_employees: int = Field(..., description="Number of employees with this currency")
-    total_payroll: Decimal = Field(..., description="Total payroll in this currency")
-    average_salary: Decimal = Field(..., description="Average salary in this currency")
+    country: str = Field(..., description="Country name")
+    primary_currency: str = Field(..., description="Primary currency used in this country")
+    total_employees: int = Field(..., description="Number of employees in this country")
+    total_payroll: Decimal = Field(..., description="Total payroll in primary currency")
+    average_salary: Decimal = Field(..., description="Average salary in primary currency")
     payroll_by_department: List[DepartmentAnalytics] = Field(
         ...,
-        description="Payroll breakdown by department for this currency"
+        description="Payroll breakdown by department for this country"
     )
     highest_paid_employees: List[EmployeeSalaryInfo] = Field(
         ...,
-        description="Top 10 highest paid employees in this currency"
+        description="Top 10 highest paid employees in this country"
     )
     lowest_paid_employees: List[EmployeeSalaryInfo] = Field(
         ...,
-        description="Top 10 lowest paid employees in this currency"
+        description="Top 10 lowest paid employees in this country"
     )
 
 
 class AnalyticsResponse(BaseModel):
     """Complete analytics response for the salary management system.
     
-    Business Rule: Analytics are grouped by currency to avoid mixing different currencies.
-    Total payroll and average salary are not aggregated across currencies.
-    Instead, use currency_analytics to see breakdowns per currency.
+    Business Rule: Analytics are grouped by country to provide location-based insights.
+    Total payroll and average salary are calculated per country, not aggregated across countries.
+    Use country_analytics to see breakdowns per country.
     """
     
-    total_employees: int = Field(..., description="Total number of active employees across all currencies")
+    total_employees: int = Field(..., description="Total number of active employees across all countries")
+    global_payroll: Decimal = Field(..., description="Global payroll across all departments (aggregated)")
     average_salary_by_department: List[DepartmentAnalytics] = Field(
         ...,
-        description="Average salary breakdown by department (aggregated across currencies)"
+        description="Average salary breakdown by department (aggregated across countries)"
     )
     average_salary_by_country: List[CountryAnalytics] = Field(
         ...,
-        description="Average salary breakdown by country (aggregated across currencies)"
+        description="Average salary breakdown by country (aggregated across countries)"
     )
     employees_by_department: List[DepartmentAnalytics] = Field(
         ...,
-        description="Employee count and payroll by department (aggregated across currencies)"
+        description="Employee count and payroll by department (aggregated across countries)"
     )
     employees_by_country: List[CountryAnalytics] = Field(
         ...,
         description="Employee count by country"
     )
-    currency_analytics: List[CurrencyAnalytics] = Field(
+    country_analytics: List[CountryGroupedAnalytics] = Field(
         ...,
-        description="Analytics grouped by currency - use this for payroll and salary data"
+        description="Analytics grouped by country - use this for payroll and salary data"
     )

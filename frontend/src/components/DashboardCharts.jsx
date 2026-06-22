@@ -1,172 +1,113 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   Box,
-  Card,
-  CardContent,
-  Typography,
+  Grid,
   useTheme,
   useMediaQuery,
-  Grid,
 } from '@mui/material'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts'
+import { formatLargeNumber, formatCurrency } from '../utils/formatUtils'
+import { BarChartCard, PieChartCard } from './charts'
 
-const DashboardCharts = ({ analytics }) => {
+const DEFAULT_CHART_CONFIG = {
+  showEmployeesByDepartment: true,
+  showEmployeesByCountry: true,
+  showPayrollByDepartment: true,
+  colors: ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4'],
+}
+
+const DashboardCharts = ({ analytics, config = DEFAULT_CHART_CONFIG }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
-  const chartHeight = isMobile ? 250 : isTablet ? 300 : 350
+  const chartHeight = isMobile ? 200 : isTablet ? 300 : 350
 
-  // Prepare data for charts
-  const departmentData = analytics?.employees_by_department || []
-  const countryData = analytics?.employees_by_country || []
-  // Payroll data is now grouped by currency - use the first currency for display or aggregate
-  const currencyAnalytics = analytics?.currency_analytics || []
-  const payrollData = currencyAnalytics.length > 0 
-    ? currencyAnalytics[0]?.payroll_by_department || []
-    : []
+  const chartData = useMemo(() => {
+    const departmentData = analytics?.employees_by_department || []
+    const countryData = analytics?.employees_by_country || []
+    const countryAnalytics = analytics?.country_analytics || []
+    
+    const payrollData = analytics?.average_salary_by_department?.map(item => ({
+      department: item.department,
+      total_payroll: item.total_payroll,
+      count: item.count,
+      average_salary: item.average_salary
+    })) || []
 
-  // Colors for charts - Professional dashboard color palette
-  const COLORS = ['#2563EB', '#7C3AED', '#16A34A', '#F59E0B', '#DC2626', '#0891B2']
+    return { departmentData, countryData, payrollData, countryAnalytics }
+  }, [analytics])
 
-  // Format currency
-  const formatCurrency = (value, currencyCode = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
+  const getTooltipFormatter = (dataKey) => {
+    if (dataKey === 'count') {
+      return (value) => formatLargeNumber(value)
+    } else if (dataKey === 'total_payroll') {
+      return (value) => formatCurrency(value, 'USD')
+    }
+    return undefined
   }
 
   return (
-    <Grid container spacing={{ xs: 2, sm: 3 }}>
-      {/* Employees by Department */}
-      <Grid item xs={12} sm={6} lg={4}>
-        <Card sx={{ height: '100%' }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-            <Typography
-              variant={isMobile ? 'body1' : 'h6'}
-              gutterBottom
-              fontWeight="bold"
-            >
-              Employees by Department
-            </Typography>
-            <Box sx={{ height: chartHeight }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={departmentData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="department"
-                    tick={{ fontSize: isMobile ? 10 : 12 }}
-                    angle={isMobile ? -45 : 0}
-                    textAnchor={isMobile ? 'end' : 'middle'}
-                    height={isMobile ? 60 : 30}
-                  />
-                  <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#2563EB" name="Employees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
+    <Grid container spacing={{ xs: 1, sm: 3 }} sx={{ width: '100%', m: 0 }}>
+      {config.showEmployeesByDepartment && (
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+            <BarChartCard
+              title="Employees by Department"
+              data={chartData.departmentData}
+              dataKey="count"
+              xAxisKey="department"
+              color="#3B82F6"
+              name="Employees"
+              height={chartHeight}
+              isMobile={isMobile}
+              tooltipFormatter={getTooltipFormatter('count')}
+            />
+          </Box>
+        </Grid>
+      )}
 
-      {/* Employees by Country */}
-      <Grid item xs={12} sm={6} lg={4}>
-        <Card sx={{ height: '100%' }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-            <Typography
-              variant={isMobile ? 'body1' : 'h6'}
-              gutterBottom
-              fontWeight="bold"
-            >
-              Employees by Country
-            </Typography>
-            <Box sx={{ height: chartHeight }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={countryData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      isMobile
-                        ? `${(percent * 100).toFixed(0)}%`
-                        : `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                    outerRadius={isMobile ? 60 : 80}
-                    fill="#8884d8"
-                    dataKey="count"
-                  >
-                    {countryData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
+      {config.showEmployeesByCountry && (
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+            <PieChartCard
+              title="Employees by Country"
+              data={chartData.countryData}
+              dataKey="count"
+              colors={config.colors}
+              height={chartHeight}
+              isMobile={isMobile}
+              showLabels={true}
+              totalData={chartData.countryData}
+              nameKey="country"
+              additionalFields={[
+                {
+                  key: 'average_salary',
+                  label: 'Avg Salary',
+                  formatter: (value) => formatCurrency(value, 'USD')
+                }
+              ]}
+            />
+          </Box>
+        </Grid>
+      )}
 
-      {/* Payroll by Department */}
-      <Grid item xs={12} sm={6} lg={4}>
-        <Card sx={{ height: '100%' }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-            <Typography
-              variant={isMobile ? 'body1' : 'h6'}
-              gutterBottom
-              fontWeight="bold"
-            >
-              Payroll by Department {currencyAnalytics.length > 0 && `(${currencyAnalytics[0].currency})`}
-            </Typography>
-            <Box sx={{ height: chartHeight }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={payrollData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="department"
-                    tick={{ fontSize: isMobile ? 10 : 12 }}
-                    angle={isMobile ? -45 : 0}
-                    textAnchor={isMobile ? 'end' : 'middle'}
-                    height={isMobile ? 60 : 30}
-                  />
-                  <YAxis
-                    tick={{ fontSize: isMobile ? 10 : 12 }}
-                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip 
-                    formatter={(value) => formatCurrency(value, currencyAnalytics.length > 0 ? currencyAnalytics[0].currency : 'USD')} 
-                  />
-                  <Legend />
-                  <Bar dataKey="total_payroll" fill="#16A34A" name="Payroll" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
+      {config.showPayrollByDepartment && (
+        <Grid item xs={12} sx={{ display: 'flex' }}>
+          <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+            <BarChartCard
+              title="Payroll by Department (Global)"
+              data={chartData.payrollData}
+              dataKey="total_payroll"
+              xAxisKey="department"
+              color="#10B981"
+              name="Payroll"
+              height={chartHeight}
+              isMobile={isMobile}
+              tooltipFormatter={getTooltipFormatter('total_payroll')}
+            />
+          </Box>
+        </Grid>
+      )}
     </Grid>
   )
 }

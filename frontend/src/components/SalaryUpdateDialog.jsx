@@ -16,6 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import { salaryUpdateSchema } from '../validation/employeeSchema'
+import { formatCurrency } from '../utils/formatUtils'
 
 const SalaryUpdateDialog = ({ open, onClose, onSubmit, currentSalary, currency, isLoading }) => {
   const theme = useTheme()
@@ -34,10 +35,7 @@ const SalaryUpdateDialog = ({ open, onClose, onSubmit, currentSalary, currency, 
   })
 
   const formatSalary = (salary, currency) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-    }).format(salary)
+    return formatCurrency(salary, currency || 'USD')
   }
 
   const onFormSubmit = (data) => {
@@ -95,14 +93,22 @@ const SalaryUpdateDialog = ({ open, onClose, onSubmit, currentSalary, currency, 
           )}
         />
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1, justifyContent: 'flex-end' }}>
         <Button
           onClick={handleClose}
           disabled={isLoading}
           size={isMobile ? 'small' : 'medium'}
           sx={{
+            borderColor: '#E2E8F0',
+            color: '#64748B',
+            fontWeight: 500,
             '&:hover': {
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              borderColor: '#CBD5E1',
+              backgroundColor: 'rgba(100, 116, 139, 0.04)',
+            },
+            '&:disabled': {
+              borderColor: '#F1F5F9',
+              color: '#CBD5E1',
             },
           }}
         >
@@ -116,8 +122,12 @@ const SalaryUpdateDialog = ({ open, onClose, onSubmit, currentSalary, currency, 
           size={isMobile ? 'small' : 'medium'}
           sx={{
             backgroundColor: '#2563EB',
+            fontWeight: 600,
             '&:hover': {
               backgroundColor: '#1D4ED8',
+            },
+            '&:disabled': {
+              backgroundColor: '#93C5FD',
             },
           }}
         >

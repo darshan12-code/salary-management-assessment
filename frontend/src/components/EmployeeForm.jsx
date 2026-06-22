@@ -21,7 +21,7 @@ import {
 } from '@mui/material'
 import { employeeSchema, COUNTRY_CURRENCY_MAP, DEPARTMENTS, COUNTRIES } from '../validation/employeeSchema'
 
-const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error, success }) => {
+const EmployeeForm = ({ mode = 'create', initialData, onSubmit, onCancel, isLoading, error, success }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
@@ -70,37 +70,31 @@ const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error
   }
 
   return (
-    <Box sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-      <Paper
-        sx={{
-          p: { xs: 2, sm: 3, md: 4 },
-          maxWidth: { xs: '100%', md: 900 },
-          mx: 'auto',
-        }}
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography
+        variant={isMobile ? 'h5' : 'h4'}
+        component="h1"
+        gutterBottom
+        sx={{ mb: { xs: 2, sm: 3 }, flexShrink: 0 }}
+        fontWeight={600}
       >
-        <Typography
-          variant={isMobile ? 'h5' : 'h4'}
-          component="h1"
-          gutterBottom
-          sx={{ mb: { xs: 2, sm: 3 } }}
-          fontWeight={600}
-        >
-          {mode === 'create' ? 'Create New Employee' : 'Edit Employee'}
-        </Typography>
+        {mode === 'create' ? 'Create New Employee' : 'Edit Employee'}
+      </Typography>
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {mode === 'create' ? 'Employee created successfully!' : 'Employee updated successfully!'}
-          </Alert>
-        )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 3, flexShrink: 0 }}>
+          {mode === 'create' ? 'Employee created successfully!' : 'Employee updated successfully!'}
+        </Alert>
+      )}
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, flexShrink: 0 }}>
+          {error}
+        </Alert>
+      )}
 
-        <form onSubmit={handleSubmit(onFormSubmit)}>
+      <form onSubmit={handleSubmit(onFormSubmit)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
           <Grid container spacing={{ xs: 2, sm: 3 }}>
             {/* Employee ID */}
             <Grid item xs={12} sm={6}>
@@ -302,42 +296,98 @@ const EmployeeForm = ({ mode = 'create', initialData, onSubmit, isLoading, error
                 )}
               />
             </Grid>
-
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  mt: 2,
-                }}
-              >
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth={isMobile}
-                  disabled={isLoading}
-                  startIcon={isLoading ? <CircularProgress size={20} /> : null}
-                  sx={{ minWidth: { sm: 150 } }}
-                >
-                  {isLoading ? 'Saving...' : mode === 'create' ? 'Create Employee' : 'Update Employee'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() => reset()}
-                  disabled={isLoading || !isDirty}
-                  fullWidth={isMobile}
-                  sx={{ minWidth: { sm: 150 } }}
-                >
-                  Reset
-                </Button>
-              </Box>
-            </Grid>
           </Grid>
-        </form>
-      </Paper>
+        </Box>
+
+        {/* Sticky Button Section */}
+        <Box
+          sx={{
+            flexShrink: 0,
+            pt: 3,
+            borderTop: '1px solid #E2E8F0',
+            backgroundColor: '#FFFFFF',
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 1,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={onCancel}
+              disabled={isLoading}
+              fullWidth={isMobile}
+              sx={{
+                minWidth: { sm: 120 },
+                borderColor: '#E2E8F0',
+                color: '#64748B',
+                fontWeight: 500,
+                '&:hover': {
+                  borderColor: '#CBD5E1',
+                  backgroundColor: 'rgba(100, 116, 139, 0.04)',
+                },
+                '&:disabled': {
+                  borderColor: '#F1F5F9',
+                  color: '#CBD5E1',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => reset()}
+              disabled={isLoading || !isDirty}
+              fullWidth={isMobile}
+              sx={{
+                minWidth: { sm: 120 },
+                borderColor: '#E2E8F0',
+                color: '#64748B',
+                fontWeight: 500,
+                '&:hover': {
+                  borderColor: '#CBD5E1',
+                  backgroundColor: 'rgba(100, 116, 139, 0.04)',
+                },
+                '&:disabled': {
+                  borderColor: '#F1F5F9',
+                  color: '#CBD5E1',
+                },
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth={isMobile}
+              disabled={isLoading}
+              startIcon={isLoading ? <CircularProgress size={20} /> : null}
+              sx={{
+                minWidth: { sm: 150 },
+                backgroundColor: '#2563EB',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: '#1D4ED8',
+                },
+                '&:disabled': {
+                  backgroundColor: '#93C5FD',
+                },
+              }}
+            >
+              {isLoading ? 'Saving...' : mode === 'create' ? 'Create Employee' : 'Update Employee'}
+            </Button>
+          </Box>
+        </Box>
+      </form>
     </Box>
   )
 }

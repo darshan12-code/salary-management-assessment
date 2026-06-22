@@ -9,16 +9,14 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import { AttachMoney as AttachMoneyIcon } from '@mui/icons-material'
+import { formatCurrency } from '../utils/formatUtils'
 
 const SalaryCard = ({ employee, onUpdateSalary }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const formatSalary = (salary, currency) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-    }).format(salary)
+    return formatCurrency(salary, currency || 'USD')
   }
 
   return (

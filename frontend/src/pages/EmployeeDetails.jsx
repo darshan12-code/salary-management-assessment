@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
@@ -6,19 +6,22 @@ import {
   Typography,
   Button,
   Grid,
-  CircularProgress,
   Alert,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  CircularProgress,
   useTheme,
   useMediaQuery,
 } from '@mui/material'
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
 import { employeeService } from '../services/employeeService'
-import Loading from '../components/Loading'
+import LoadingState from '../components/LoadingState'
 import EmployeeProfileCard from '../components/EmployeeProfileCard'
-import SalaryCard from '../components/SalaryCard'
 import SalaryUpdateDialog from '../components/SalaryUpdateDialog'
 import SalaryHistoryTable from '../components/SalaryHistoryTable'
+import EmployeeForm from '../components/EmployeeForm'
 
 const EmployeeDetails = () => {
   const { id } = useParams()
@@ -26,9 +29,11 @@ const EmployeeDetails = () => {
   const queryClient = useQueryClient()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   const [openSalaryDialog, setOpenSalaryDialog] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [formSuccess, setFormSuccess] = useState(false)
+  const [formError, setFormError] = useState(null)
   const [notification, setNotification] = useState({
     open: false,
     message: '',
@@ -72,6 +77,23 @@ const EmployeeDetails = () => {
     },
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => employeeService.updateEmployee(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee', id] })
+      setFormSuccess(true)
+      setFormError(null)
+      setTimeout(() => {
+        setEditDialogOpen(false)
+        setFormSuccess(false)
+      }, 1500)
+    },
+    onError: (err) => {
+      setFormError(err.response?.data?.detail || 'Failed to update employee. Please try again.')
+      setFormSuccess(false)
+    },
+  })
+
   const handleSalaryUpdate = (salary) => {
     updateSalaryMutation.mutate(salary)
   }
@@ -88,16 +110,28 @@ const EmployeeDetails = () => {
     refetchSalaryHistory()
   }
 
-  const handleEditEmployee = () => {
-    navigate(`/employees/${id}/edit`, { state: { from: 'details' } })
-  }
+  const handleEditDialogOpen = useCallback(() => {
+    setFormSuccess(false)
+    setFormError(null)
+    setEditDialogOpen(true)
+  }, [])
+
+  const handleEditDialogClose = useCallback(() => {
+    setEditDialogOpen(false)
+    setFormSuccess(false)
+    setFormError(null)
+  }, [])
+
+  const handleEditSubmit = useCallback((data) => {
+    updateMutation.mutate({ id, data })
+  }, [updateMutation, id])
 
   const handleUpdateSalary = () => {
     setOpenSalaryDialog(true)
   }
 
   if (isLoading) {
-    return <Loading />
+    return <LoadingState />
   }
 
   if (fetchError) {
@@ -125,7 +159,7 @@ const EmployeeDetails = () => {
   }
 
   return (
-    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } ,maxWidth: '100vw',}}>
       <Box
         sx={{
           display: 'flex',
@@ -142,69 +176,32 @@ const EmployeeDetails = () => {
             mr: { sm: 2 }, 
             alignSelf: { xs: 'flex-start', sm: 'center' },
             color: '#64748B',
+            maxWidth: '200px',
+            borderColor: '#E2E8F0',
+            fontWeight: 500,
             '&:hover': {
               backgroundColor: 'rgba(37, 99, 235, 0.1)',
               color: '#2563EB',
+              borderColor: '#CBD5E1',
             },
           }}
         >
           Back to Employees
         </Button>
-        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" fontWeight={600}>
-          Employee Details
-        </Typography>
       </Box>
 
-      <Grid container spacing={{ xs: 2, sm: 3 }}>
-        <Grid item xs={12} md={6} lg={4}>
-          <EmployeeProfileCard employee={employee} onEdit={handleEditEmployee} />
+      <Grid container spacing={{ xs: 2, sm: 3 }} justifyContent="center">
+        {/* Profile Card - Full width on mobile, 9/12 on desktop */}
+        <Grid item xs={12} md={9}>
+          <EmployeeProfileCard 
+            employee={employee} 
+            onEdit={handleEditDialogOpen}
+            onUpdateSalary={handleUpdateSalary}
+          />
         </Grid>
 
-        <Grid item xs={12} md={6} lg={4}>
-          <SalaryCard employee={employee} onUpdateSalary={handleUpdateSalary} />
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom fontWeight={600}>
-              Quick Actions
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={handleEditEmployee}
-                sx={{
-                  py: 1.5,
-                  fontWeight: 500,
-                  '&:hover': {
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                  },
-                }}
-              >
-                Edit Employee
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleUpdateSalary}
-                sx={{
-                  py: 1.5,
-                  fontWeight: 500,
-                  backgroundColor: '#2563EB',
-                  '&:hover': {
-                    backgroundColor: '#1D4ED8',
-                  },
-                }}
-              >
-                Update Salary
-              </Button>
-            </Box>
-          </Box>
-        </Grid>
-
+        {/* Salary History Table - Full width */}
         <Grid item xs={12}>
-          <Typography variant={isMobile ? 'h6' : 'h5'} gutterBottom sx={{ mt: 2 }} fontWeight={600}>
-            Salary History
-          </Typography>
           <SalaryHistoryTable
             salaryHistory={salaryHistory}
             currency={employee.currency}
@@ -223,6 +220,44 @@ const EmployeeDetails = () => {
         currency={employee.currency}
         isLoading={updateSalaryMutation.isPending}
       />
+
+      {/* Edit Employee Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleEditDialogClose}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: { maxHeight: '90vh', borderRadius: isMobile ? 0 : 2, display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle fontWeight={600} sx={{ flexShrink: 0 }}>Edit Employee</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400 }}>
+            <EmployeeForm
+              mode="edit"
+              initialData={{
+                employee_id: employee.employee_id,
+                name: employee.name,
+                email: employee.email,
+                department: employee.department,
+                designation: employee.designation,
+                country: employee.country,
+                salary: employee.salary,
+                currency: employee.currency,
+                joining_date: employee.joining_date?.split('T')[0] || '',
+                is_active: employee.is_active,
+              }}
+              onSubmit={handleEditSubmit}
+              onCancel={handleEditDialogClose}
+              isLoading={updateMutation.isPending}
+              error={formError}
+              success={formSuccess}
+            />
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       <Snackbar
         open={notification.open}

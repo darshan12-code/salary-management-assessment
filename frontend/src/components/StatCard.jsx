@@ -1,9 +1,9 @@
 import React from 'react'
 import { Card, CardContent, Box, Typography, useTheme, useMediaQuery } from '@mui/material'
 
-const StatCard = ({ title, value, icon, color }) => {
+const StatCard = ({ title, value, icon, color, isMobile: isMobileProp }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMobile = isMobileProp !== undefined ? isMobileProp : useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
@@ -17,28 +17,34 @@ const StatCard = ({ title, value, icon, color }) => {
         },
       }}
     >
-      <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+      <CardContent sx={{ p: { xs: 1.5, sm: 3, md: 4 } }}>
         <Box
           display="flex"
           alignItems="center"
           justifyContent="space-between"
           flexDirection={{ xs: 'column', sm: 'row' }}
-          gap={{ xs: 2, sm: 0 }}
+          gap={{ xs: 1, sm: 0 }}
         >
           <Box>
             <Typography
               color="text.secondary"
               gutterBottom
-              variant={isMobile ? 'body1' : 'h6'}
+              variant={isMobile ? 'caption' : 'h6'}
               fontWeight={500}
+              sx={{ fontSize: { xs: '0.7rem', sm: '1rem' } }}
             >
               {title}
             </Typography>
             <Typography
-              variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h3'}
+              variant={isMobile ? 'body1' : isTablet ? 'h4' : 'h3'}
               component="h2"
               fontWeight={600}
               color="text.primary"
+              
+              sx={{ fontSize: { xs: '0.9rem', sm: '1.3rem', md: '1.5rem' },
+                 textAlign: { xs: 'center', sm: 'left' },
+                width: '100%'
+                }}
             >
               {value}
             </Typography>
@@ -47,7 +53,7 @@ const StatCard = ({ title, value, icon, color }) => {
             sx={{
               backgroundColor: `${color}15`,
               borderRadius: 3,
-              p: { xs: 1.5, sm: 2, md: 2.5 },
+              p: { xs: 1, sm: 2, md: 2.5 },
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -59,7 +65,7 @@ const StatCard = ({ title, value, icon, color }) => {
           >
             {React.cloneElement(icon, {
               sx: {
-                fontSize: { xs: 32, sm: 40, md: 48 },
+                fontSize: { xs: 24, sm: 40, md: 48 },
                 color,
               },
             })}

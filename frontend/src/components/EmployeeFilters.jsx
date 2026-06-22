@@ -37,10 +37,10 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
   return (
     <Box 
       display="flex" 
-      gap={{ xs: 1.5, sm: 2 }} 
-      flexWrap="wrap" 
-      alignItems="center"
-      sx={{ mb: 0 }}
+      flexDirection={{ xs: 'column', sm: 'row' }}
+      gap={{ xs: 1, sm: 2 }} 
+      alignItems={{ xs: 'stretch', sm: 'center' }}
+      sx={{ mb: 0, width: '100%' }}
     >
       <TextField
         label="Search"
@@ -48,13 +48,14 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
         onChange={handleSearchChange}
         size={isMobile ? 'small' : 'medium'}
         sx={{ 
-          minWidth: { xs: 200, sm: 250 }, 
-          maxWidth: { xs: 200, sm: 300 },
-          flexGrow: { xs: 1, sm: 0 }
+          minWidth: { xs: '200px', sm: 250 }, 
+          maxWidth: { xs: '100%', sm: 300 },
+          flexGrow: { xs: 1, sm: 0 },
+          width: { xs: '100%', sm: 'auto' }
         }}
         placeholder="Name or ID..."
       />
-      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: 140, sm: 160 } }}>
+      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: '140px', sm: 160 }, width: { xs: '100%', sm: 'auto' } }}>
         <InputLabel>Department</InputLabel>
         <Select
           value={filters.department || ''}
@@ -70,7 +71,7 @@ const EmployeeFilters = ({ filters, onFilterChange }) => {
           <MenuItem value="Operations">Operations</MenuItem>
         </Select>
       </FormControl>
-      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: 140, sm: 160 } }}>
+      <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: { xs: '140px', sm: 160 }, width: { xs: '100%', sm: 'auto' } }}>
         <InputLabel>Country</InputLabel>
         <Select
           value={filters.country || ''}

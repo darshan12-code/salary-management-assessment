@@ -7,6 +7,9 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import EmptyState from './EmptyState'
+import TableWrapper from './TableWrapper'
+import { getTableStyles } from './tableStyles'
+import { formatCurrency } from '../utils/formatUtils'
 
 const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry }) => {
   const theme = useTheme()
@@ -14,10 +17,7 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
   const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   const formatSalary = (salary) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-    }).format(salary)
+    return formatCurrency(salary, currency || 'USD')
   }
 
   const formatDate = (dateString) => {
@@ -31,7 +31,7 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
       width: 150,
       flex: 1,
       minWidth: 120,
-      valueFormatter: (params) => formatSalary(params.value),
+      valueFormatter: (params) => formatSalary(params),
     },
     {
       field: 'new_salary',
@@ -39,7 +39,7 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
       width: 150,
       flex: 1,
       minWidth: 120,
-      valueFormatter: (params) => formatSalary(params.value),
+      valueFormatter: (params) => formatSalary(params),
     },
     // {
     //   field: 'change_amount',
@@ -59,83 +59,56 @@ const SalaryHistoryTable = ({ salaryHistory, currency, isLoading, error, onRetry
       width: 200,
       flex: 1,
       minWidth: 180,
-      valueFormatter: (params) => formatDate(params.value),
+      valueFormatter: (params) => formatDate(params),
     },
   ]
 
   if (isLoading) {
     return (
-      <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
-        <Box sx={{ width: 40, height: 40 }}>
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              border: '3px solid #E2E8F0',
-              borderTop: '3px solid #2563EB',
-              animation: 'spin 1s linear infinite',
-              '@keyframes spin': {
-                '0%': { transform: 'rotate(0deg)' },
-                '100%': { transform: 'rotate(360deg)' },
-              },
-            }}
-          />
-        </Box>
-        <Typography variant="body2" color="text.secondary" fontWeight={500}>
-          Loading salary history...
-        </Typography>
-      </Box>
+      <TableWrapper
+        title="Salary History"
+        height={400}
+        isLoading={isLoading}
+        loadingMessage="Loading salary history..."
+      />
     )
   }
 
   if (error) {
     return (
-      <EmptyState
-        message="Failed to load salary history"
-        actionLabel="Retry"
-        onAction={onRetry}
+      <TableWrapper
+        title="Salary History"
+        height={400}
+        error={error}
+        errorMessage="Failed to load salary history"
       />
     )
   }
 
   if (!salaryHistory || salaryHistory.length === 0) {
     return (
-      <EmptyState
-        message="No salary history available for this employee"
-      />
+      <TableWrapper
+        title="Salary History"
+        height={400}
+      >
+        <EmptyState message="No salary history available for this employee" />
+      </TableWrapper>
     )
   }
 
   return (
-    <Box sx={{ height: 400, width: '100%' }}>
-      <DataGrid
-        rows={salaryHistory}
-        columns={columns}
-        getRowId={(row) => row.id || row.changed_at}
-        pageSizeOptions={[10, 20, 50]}
-        disableRowSelectionOnClick
-        sx={{
-          '& .MuiDataGrid-cell': {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-          },
-          '& .MuiDataGrid-columnHeader': {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-          },
-          '& .MuiDataGrid-row:hover': {
-            backgroundColor: 'rgba(37, 99, 235, 0.04)',
-          },
-          '& .MuiDataGrid-footerContainer': {
-            '& .MuiTablePagination-root': {
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: isMobile ? '0.875rem' : '1rem',
-              },
-            },
-          },
-        }}
-      />
-    </Box>
+    <TableWrapper title="Salary History" height={400}>
+      <Box sx={{ height: 400 }}>
+        <DataGrid
+          rows={salaryHistory}
+          columns={columns}
+          getRowId={(row) => row.id || row.changed_at}
+          pageSizeOptions={[10, 20, 50]}
+          disableRowSelectionOnClick
+          sx={getTableStyles(isMobile, isTablet)}
+        />
+      </Box>
+    </TableWrapper>
   )
 }
 
