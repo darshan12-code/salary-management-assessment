@@ -1,95 +1,175 @@
-# Salary Management System - Requirements Document
+# Salary Management System – Requirements Document
 
 ## Goal
 
-ACME organization's HR team currently manages salary information for approximately 10,000 employees across multiple countries using spreadsheets. This process is difficult to maintain, error-prone, and inefficient for reporting and salary analysis.
+ACME Organization currently manages salary data for approximately 10,000 employees across multiple countries using spreadsheets. This process is time-consuming, error-prone, and makes it difficult to maintain accurate salary records or generate organization-wide compensation insights.
 
-The goal of this project is to provide a web-based salary management platform that enables HR managers to manage employee salary information efficiently and generate organizational salary insights from a single source of truth.
+The goal of this assessment is to build a web-based Salary Management System that provides HR Managers with a centralized platform to manage employee salary information and answer common compensation-related questions efficiently.
 
 ---
 
 ## Primary User
 
-HR Manager
+### HR Manager
 
-Responsibilities:
+The HR Manager should be able to
 
-* Maintain employee salary records
-* Search and review employee information
-* Update salary information
-* Analyze payroll distribution across departments and countries
-* Generate high-level compensation insights
+- Create and manage employee records
+- Search and filter employee information
+- View and update salary information
+- Track salary changes over time
+- Analyze compensation data across departments and countries
+- Access organization-wide salary insights through a dashboard
+
+---
+
+## Product Decisions & Assumptions
+
+The assessment intentionally leaves several requirements open-ended. The following decisions have been made for the MVP
+
+### Employee Management
+
+Employee creation and editing will be supported.
+
+Reasoning:
+The HR Manager is responsible for maintaining salary data. Supporting employee creation allows the system to manage employee records directly instead of assuming all employee data already exists.
+
+### Salary History Tracking
+
+Salary history tracking will be included.
+
+Reasoning:
+Salary updates without historical tracking would result in loss of important compensation information. Maintaining salary history improves auditability and enables future compensation analysis.
+
+### Countries & Currencies
+
+The system will support employees across multiple countries and currencies.
+
+Reasoning:
+The organization operates globally. Employee salaries will be stored in their local currency along with the employee's country.
+
+Currency conversion and exchange-rate management are intentionally excluded from the MVP to avoid introducing unnecessary financial complexity.
 
 ---
 
 ## Scope
 
-This project focuses on delivering a Minimum Viable Product (MVP) that supports salary management and reporting for 10,000 employees.
-
-The system should:
-
-* Store employee salary information
-* Support salary updates
-* Maintain salary change history
-* Provide payroll analytics
-* Support search and filtering of employee records
-* Handle a dataset of at least 10,000 employees
-
----
-
-## Features
+The first version focuses on salary management and compensation analytics for an organization containing approximately 10,000 employees.
 
 ### Employee Management
 
-* View employee records
-* Search employees by name or employee ID
-* Filter employees by department and country
+- Create employee records
+- View employee information
+- Update employee details
+- Search employees by name or employee ID
+- Filter employees by department and country
 
 ### Salary Management
 
-* View employee salary details
-* Update employee salary
-* Track salary history
+- View salary details
+- Update employee salaries
+- Store salary currency information
+- Maintain salary history records
+- View employee salary history
 
 ### Analytics Dashboard
 
-* Total payroll expenditure
-* Average salary by country
-* Average salary by department
-* Highest paid employees
-* Lowest paid employees
-* Employee distribution by country
+The dashboard should help HR Managers answer questions about how the organization pays employees.
+
+Key insights include:
+
+- Total employees
+- Total payroll expenditure
+- Average salary by department
+- Average salary by country
+- Highest paid employees
+- Lowest paid employees
+- Employee distribution by department
+- Employee distribution by country
+- Payroll expenditure by department
 
 ### Data Seeding
 
-* Seed database with 10,000 employee records for testing and demonstration purposes
+- Seed the database with 10,000 employee records
+- Generate realistic employee data including:
+
+  - Name
+  - Department
+  - Designation
+  - Country
+  - Currency
+  - Salary
+  - Joining Date
 
 ---
 
 ## Deliberately Out of Scope
 
-The following features are intentionally excluded from the initial version:
+The following capabilities are intentionally excluded from the MVP:
 
-* Payroll processing
-* Tax calculations
-* Bank payout integrations
-* Employee self-service portal
-* Role-based access control (RBAC)
-* Multi-organization support
-* Approval workflows
-* Performance review integrations
+### Payroll Processing
 
-These features introduce significant complexity and are not required to validate the core salary management workflow. The focus of this iteration is to provide a reliable, maintainable, and performant salary management platform for HR users.
+- Salary disbursement
+- Payslip generation
+- Tax calculations
+- PF, deductions, bonuses, and benefits
+- Bank integrations
+
+Reasoning:
+The objective is salary management and analytics, not payroll execution.
+
+### Data Import / Export
+
+- Excel import
+- CSV import
+- Excel export
+- CSV export
+
+Reasoning:
+The assessment focuses on salary management workflows. Import/export functionality can be added in future iterations.
+
+### Access Control
+
+- Role-based access control
+- Multiple user types
+- Approval workflows
+
+Reasoning:
+The MVP assumes a single HR Manager user.
+
+### Additional HR Features
+
+- Employee self-service portal
+- Performance reviews
+- Promotion workflows
+- Benefits management
+- Multi organization support
+- AI chatbot support
 
 ---
 
-## Success Metrics
+## Success Criteria
 
 The solution will be considered successful if:
 
-* HR managers can efficiently search and manage salary records
-* Salary updates are tracked accurately
-* Dashboard insights are generated correctly
-* The system performs reliably with 10,000 employee records
-* Core functionality is covered by automated tests
-* The application can be deployed and used through a web interface
+- HR Managers can create and manage employee records efficiently
+- Salary updates are accurately recorded
+- Salary history is maintained correctly
+- Compensation insights can be generated from the employee dataset
+- Multicountry salary data can be managed effectively
+- The application performs reliably with 10,000 seeded employees
+- The codebase is easy to maintain, test, and extend
+
+---
+
+## Future Enhancements
+
+Potential future improvements include:
+
+- Excel/CSV import and export
+- Currency conversion support
+- Authentication and role based access control
+- Payroll processing workflows
+- Advanced compensation trend analysis
+- Audit logs and approval workflows
+- Benchmarking and compensation planning tools

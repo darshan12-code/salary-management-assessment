@@ -1,0 +1,314 @@
+import React, { useState, useCallback } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material'
+import { Add as AddIcon } from '@mui/icons-material'
+import { employeeService } from '../services/employeeService'
+import EmployeeFilters from '../components/EmployeeFilters'
+import EmployeeTable from '../components/EmployeeTable'
+import TableSkeleton from '../components/TableSkeleton'
+import ErrorState from '../components/ErrorState'
+import EmptyState from '../components/EmptyState'
+import EmployeeForm from '../components/EmployeeForm'
+
+const Employees = () => {
+  const queryClient = useQueryClient()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  
+  // Dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState(null)
+  const [formSuccess, setFormSuccess] = useState(false)
+  const [formError, setFormError] = useState(null)
+  
+  // Local state for filters and pagination (no URL synchronization)
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  })
+  
+  const [filters, setFilters] = useState({
+    search: '',
+    department: '',
+    country: '',
+  })
+
+  // Create employee mutation
+  const createMutation = useMutation({
+    mutationFn: (data) => employeeService.createEmployee(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] })
+      setFormSuccess(true)
+      setFormError(null)
+      setTimeout(() => {
+        setCreateDialogOpen(false)
+        setFormSuccess(false)
+      }, 1500)
+    },
+    onError: (err) => {
+      setFormError(err.response?.data?.detail || 'Failed to create employee. Please try again.')
+      setFormSuccess(false)
+    },
+  })
+
+  // Update employee mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => employeeService.updateEmployee(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] })
+      setFormSuccess(true)
+      setFormError(null)
+      setTimeout(() => {
+        setEditDialogOpen(false)
+        setEditingEmployee(null)
+        setFormSuccess(false)
+      }, 1500)
+    },
+    onError: (err) => {
+      setFormError(err.response?.data?.detail || 'Failed to update employee. Please try again.')
+      setFormSuccess(false)
+    },
+  })
+
+  const { data: employeesData, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ['employees', paginationModel.page + 1, paginationModel.pageSize, filters],
+    queryFn: () =>
+      employeeService.getEmployees({
+        page: paginationModel.page + 1,
+        page_size: paginationModel.pageSize,
+        search: filters.search || undefined,
+        department: filters.department || undefined,
+        country: filters.country || undefined,
+      }),
+    staleTime: 5000,
+  })
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(newFilters)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }, [])
+
+  const handlePaginationModelChange = useCallback((newPaginationModel) => {
+    setPaginationModel(newPaginationModel)
+  }, [])
+
+  const handleCreateDialogOpen = useCallback(() => {
+    setFormSuccess(false)
+    setFormError(null)
+    setCreateDialogOpen(true)
+  }, [])
+
+  const handleCreateDialogClose = useCallback(() => {
+    setCreateDialogOpen(false)
+    setFormSuccess(false)
+    setFormError(null)
+  }, [])
+
+  const handleEditDialogOpen = useCallback((employee) => {
+    setEditingEmployee(employee)
+    setFormSuccess(false)
+    setFormError(null)
+    setEditDialogOpen(true)
+  }, [])
+
+  const handleEditDialogClose = useCallback(() => {
+    setEditDialogOpen(false)
+    setEditingEmployee(null)
+    setFormSuccess(false)
+    setFormError(null)
+  }, [])
+
+  const handleCreateSubmit = useCallback((data) => {
+    createMutation.mutate(data)
+  }, [createMutation])
+
+  const handleEditSubmit = useCallback((data) => {
+    updateMutation.mutate({ id: editingEmployee.id, data })
+  }, [updateMutation, editingEmployee])
+
+  const employees = employeesData?.items || []
+  const total = employeesData?.total || 0
+
+  return (
+    <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3 }, width: '100%', maxWidth: '100vw', boxSizing: 'border-box' }}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={{ xs: 2, sm: 3 }}
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        gap={{ xs: 2, sm: 0 }}
+      >
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" fontWeight={600}>
+          Employees
+        </Typography>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={handleCreateDialogOpen} 
+          size={isMobile ? 'small' : 'medium'}
+          sx={{
+            minWidth: { xs: '120px', sm: '150px' },
+            maxWidth: { xs: '200px', sm: 'auto' },
+            width: { xs: '100%', sm: 'auto' },
+            backgroundColor: '#2563EB',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#1D4ED8',
+            },
+          }}
+        >
+          Add Employee
+        </Button>
+      </Box>
+
+      <Paper sx={{ p: { xs: 1.5, sm: 3 }, mb: 3, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+        <EmployeeFilters filters={filters} onFilterChange={handleFilterChange} />
+      </Paper>
+
+      <Box sx={{ position: 'relative', minHeight: isMobile ? 400 : 600, width: '100%', maxWidth: '100%' }}>
+        {isLoading ? (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              zIndex: 10,
+              borderRadius: '8px',
+            }}
+          >
+            <CircularProgress size={40} sx={{ color: '#2563EB' }} />
+          </Box>
+        ) : error ? (
+          <ErrorState
+            message="Failed to load employees. Please try again."
+            onRetry={() => refetch()}
+          />
+        ) : employees.length === 0 ? (
+          <EmptyState
+            message="No employees found matching your criteria"
+            actionLabel="Clear Filters"
+            onAction={() => setFilters({ search: '', department: '', country: '' })}
+          />
+        ) : (
+          <Box sx={{ position: 'relative' }}>
+            {isFetching && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  zIndex: 10,
+                  borderRadius: '8px',
+                }}
+              >
+                <CircularProgress size={40} sx={{ color: '#2563EB' }} />
+              </Box>
+            )}
+            <EmployeeTable
+              employees={employees}
+              total={total}
+              paginationModel={paginationModel}
+              onPaginationModelChange={handlePaginationModelChange}
+              onEdit={handleEditDialogOpen}
+            />
+          </Box>
+        )}
+      </Box>
+
+      {/* Create Employee Dialog */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={handleCreateDialogClose}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: { maxHeight: '90vh', borderRadius: isMobile ? 0 : 2, display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle fontWeight={600} sx={{ flexShrink: 0 }}>Create New Employee</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400 }}>
+            <EmployeeForm
+              mode="create"
+              onSubmit={handleCreateSubmit}
+              onCancel={handleCreateDialogClose}
+              isLoading={createMutation.isPending}
+              error={formError}
+              success={formSuccess}
+            />
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Employee Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleEditDialogClose}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: { maxHeight: '90vh', borderRadius: isMobile ? 0 : 2, display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle fontWeight={600} sx={{ flexShrink: 0 }}>Edit Employee</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400 }}>
+            {editingEmployee && (
+              <EmployeeForm
+                mode="edit"
+                initialData={{
+                  employee_id: editingEmployee.employee_id,
+                  name: editingEmployee.name,
+                  email: editingEmployee.email,
+                  department: editingEmployee.department,
+                  designation: editingEmployee.designation,
+                  country: editingEmployee.country,
+                  salary: editingEmployee.salary,
+                  currency: editingEmployee.currency,
+                  joining_date: editingEmployee.joining_date?.split('T')[0] || '',
+                  is_active: editingEmployee.is_active,
+                }}
+                onSubmit={handleEditSubmit}
+                onCancel={handleEditDialogClose}
+                isLoading={updateMutation.isPending}
+                error={formError}
+                success={formSuccess}
+                
+              />
+            )}
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  )
+}
+
+export default Employees
