@@ -15,8 +15,8 @@ class TestAnalyticsRoutes:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "total_employees" in data
-        assert "total_payroll" in data
-        assert "average_salary" in data
+        assert "global_payroll" in data
+        assert "country_analytics" in data
     
     def test_total_employees_calculation(self, client, multiple_employees):
         """Test that total employees calculation is correct."""
@@ -30,30 +30,33 @@ class TestAnalyticsRoutes:
         response = client.get("/api/analytics/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert float(data["total_payroll"]) > 0
+        assert float(data["global_payroll"]) > 0
         # Expected total: sum of 60000 + 70000 + ... + 250000 (20 employees, i from 1 to 20)
         expected_total = sum(50000 + i * 10000 for i in range(1, 21))
-        assert float(data["total_payroll"]) == expected_total
+        assert float(data["global_payroll"]) == expected_total
     
     def test_average_salary_calculation(self, client, multiple_employees):
         """Test that average salary calculation is correct."""
         response = client.get("/api/analytics/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert float(data["average_salary"]) > 0
-        # Average should be total_payroll / total_employees
-        expected_avg = float(data["total_payroll"]) / data["total_employees"]
-        assert abs(float(data["average_salary"]) - expected_avg) < 0.01
+        # Average salary is now calculated per country, check first country's average
+        assert len(data["country_analytics"]) > 0
+        first_country = data["country_analytics"][0]
+        assert float(first_country["average_salary"]) > 0
     
     def test_highest_paid_employees_returned(self, client, multiple_employees):
         """Test that highest paid employees are returned correctly."""
         response = client.get("/api/analytics/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "highest_paid_employees" in data
-        assert len(data["highest_paid_employees"]) <= 10
+        # Highest paid employees are now nested under country_analytics
+        assert len(data["country_analytics"]) > 0
+        first_country = data["country_analytics"][0]
+        assert "highest_paid_employees" in first_country
+        assert len(first_country["highest_paid_employees"]) <= 10
         # Check that salaries are in descending order
-        salaries = [float(emp["salary"]) for emp in data["highest_paid_employees"]]
+        salaries = [float(emp["salary"]) for emp in first_country["highest_paid_employees"]]
         assert salaries == sorted(salaries, reverse=True)
     
     def test_lowest_paid_employees_returned(self, client, multiple_employees):
@@ -61,10 +64,13 @@ class TestAnalyticsRoutes:
         response = client.get("/api/analytics/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "lowest_paid_employees" in data
-        assert len(data["lowest_paid_employees"]) <= 10
+        # Lowest paid employees are now nested under country_analytics
+        assert len(data["country_analytics"]) > 0
+        first_country = data["country_analytics"][0]
+        assert "lowest_paid_employees" in first_country
+        assert len(first_country["lowest_paid_employees"]) <= 10
         # Check that salaries are in ascending order
-        salaries = [float(emp["salary"]) for emp in data["lowest_paid_employees"]]
+        salaries = [float(emp["salary"]) for emp in first_country["lowest_paid_employees"]]
         assert salaries == sorted(salaries)
     
     def test_average_salary_by_department(self, client, multiple_employees):
@@ -103,16 +109,20 @@ class TestAnalyticsRoutes:
         for country_data in data["employees_by_country"]:
             assert "country" in country_data
             assert "count" in country_data
+            assert "average_salary" in country_data
     
     def test_payroll_by_department(self, client, multiple_employees):
         """Test that payroll by department is calculated correctly."""
         response = client.get("/api/analytics/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "payroll_by_department" in data
-        assert len(data["payroll_by_department"]) > 0
+        # Payroll by department is now nested under country_analytics
+        assert len(data["country_analytics"]) > 0
+        first_country = data["country_analytics"][0]
+        assert "payroll_by_department" in first_country
+        assert len(first_country["payroll_by_department"]) > 0
         # Check that each entry has required fields
-        for dept_data in data["payroll_by_department"]:
+        for dept_data in first_country["payroll_by_department"]:
             assert "department" in dept_data
             assert "total_payroll" in dept_data
             assert "count" in dept_data
@@ -123,7 +133,5 @@ class TestAnalyticsRoutes:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["total_employees"] == 0
-        assert float(data["total_payroll"]) == 0
-        assert float(data["average_salary"]) == 0
-        assert len(data["highest_paid_employees"]) == 0
-        assert len(data["lowest_paid_employees"]) == 0
+        assert float(data["global_payroll"]) == 0
+        assert len(data["country_analytics"]) == 0
