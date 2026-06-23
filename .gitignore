@@ -89,7 +89,7 @@ desktop.ini
 *.db
 *.sqlite
 *.sqlite3
-salary_management.db
+
 
 # Logs
 *.log
