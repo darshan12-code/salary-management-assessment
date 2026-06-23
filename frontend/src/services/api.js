@@ -8,7 +8,7 @@ const api = axios.create({
 })
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
-console.log('API_URL=', API_URL)
+console.log('API_URL=',import.meta.env, import.meta,API_URL)
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
