@@ -398,10 +398,4 @@ See [tradeoffs.md](tradeoffs.md) for detailed tradeoffs made during development.
 
 See [ai-usage.md](ai-usage.md) for details on AI assistance used during development.
 
-## License
 
-This project is for educational purposes.
-
-## Support
-
-For issues or questions, please refer to the project documentation or contact the development team.
